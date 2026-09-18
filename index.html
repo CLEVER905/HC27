@@ -10,23 +10,85 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: #151d2a;
+            --border-color: #26334d;
+            --primary-accent: #f59e0b;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --header-bg: #151d2a;
+        }
+
+        /* --- الثيمات --- */
+        body.theme-snow {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #38bdf8;
+            --primary-accent: #38bdf8;
+            --text-main: #f8fafc;
+            --header-bg: #1e293b;
+        }
+
+        body.theme-volcano {
+            --bg-color: #180808;
+            --card-bg: #2a1212;
+            --border-color: #7f1d1d;
+            --primary-accent: #ef4444;
+            --text-main: #fef2f2;
+            --header-bg: #2a1212;
+        }
+
+        body.theme-saudi {
+            --bg-color: #022c22;
+            --card-bg: #064e3b;
+            --border-color: #10b981;
+            --primary-accent: #34d399;
+            --text-main: #ecfdf5;
+            --header-bg: #064e3b;
+        }
+
+        body.theme-leader {
+            --bg-color: #1a052e;
+            --card-bg: #2e104d;
+            --border-color: #a855f7;
+            --primary-accent: #eab308;
+            --text-main: #faf5ff;
+            --header-bg: #2e104d;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s, border-color 0.3s;
         }
 
         body {
-            background-color: #0b0f19;
-            color: #f1f5f9;
+            background-color: var(--bg-color);
+            color: var(--text-main);
             padding-bottom: 75px;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* تأثير الثلج لثيم الشتاء */
+        body.theme-snow::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(#fff 2px, transparent 2px);
+            background-size: 30px 30px;
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 1;
         }
 
         #loginOverlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #0b0f19;
+            background: var(--bg-color);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -34,17 +96,17 @@
         }
 
         .login-card {
-            background: #151d2a;
+            background: var(--card-bg);
             padding: 25px;
             border-radius: 16px;
             width: 90%;
             max-width: 350px;
             text-align: center;
-            border: 1px solid #26334d;
+            border: 1px solid var(--border-color);
         }
 
         .login-card h2 {
-            color: #f59e0b;
+            color: var(--primary-accent);
             margin-bottom: 15px;
             font-size: 20px;
         }
@@ -54,15 +116,15 @@
             padding: 12px;
             margin: 8px 0;
             border-radius: 10px;
-            border: 1px solid #26334d;
-            background-color: #0b0f19;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
             color: #fff;
             font-size: 15px;
             outline: none;
         }
 
         button {
-            background-color: #f59e0b;
+            background-color: var(--primary-accent);
             color: #000;
             font-weight: bold;
             cursor: pointer;
@@ -75,10 +137,10 @@
         }
 
         header {
-            background: #151d2a;
+            background: var(--header-bg);
             padding: 15px;
             text-align: center;
-            border-bottom: 1px solid #26334d;
+            border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -86,17 +148,19 @@
 
         header h1 {
             font-size: 17px;
-            color: #f59e0b;
+            color: var(--primary-accent);
         }
 
         header p {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--text-sub);
             margin-top: 4px;
         }
 
         .container {
             padding: 15px;
+            position: relative;
+            z-index: 2;
         }
 
         .tab-content {
@@ -108,17 +172,51 @@
         }
 
         .card {
-            background: #151d2a;
+            background: var(--card-bg);
             padding: 15px;
             border-radius: 14px;
             margin-bottom: 15px;
-            border: 1px solid #26334d;
+            border: 1px solid var(--border-color);
         }
 
         .card h3 {
             font-size: 16px;
             margin-bottom: 12px;
-            color: #38bdf8;
+            color: var(--primary-accent);
+        }
+
+        /* شريط المباراة الجارية */
+        .live-match-banner {
+            background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(245,158,11,0.2));
+            border: 1px solid #ef4444;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .live-match-banner .live-tag {
+            display: inline-block;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .live-score-display {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 6px 0;
+            color: #fff;
         }
 
         table {
@@ -127,25 +225,165 @@
         }
 
         th, td {
-            padding: 12px;
+            padding: 12px 8px;
             text-align: center;
-            border-bottom: 1px solid #26334d;
+            border-bottom: 1px solid var(--border-color);
         }
 
         th {
+            background-color: rgba(0,0,0,0.2);
+            color: var(--primary-accent);
+            font-size: 13px;
+        }
+
+        /* ألوان التوقعات */
+        .pred-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .pred-wrong {
+            background-color: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+
+        .pred-correct {
+            background-color: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid #22c55e;
+        }
+
+        .pred-exact {
+            background-color: rgba(234, 179, 8, 0.2);
+            color: #eab308;
+            border: 1px solid #eab308;
+            box-shadow: 0 0 8px rgba(234, 179, 8, 0.4);
+        }
+
+        /* واجهة الملف الشخصي SBR Style */
+        .profile-header-card {
+            padding: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .cover-photo {
+            width: 100%;
+            height: 120px;
+            background-color: #334155;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .profile-avatar-container {
+            text-align: center;
+            margin-top: -40px;
+            position: relative;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid var(--card-bg);
+            object-fit: cover;
             background-color: #1e293b;
-            color: #f59e0b;
-            font-size: 14px;
+        }
+
+        .profile-info {
+            text-align: center;
+            padding: 10px 15px 15px;
+        }
+
+        .profile-info h2 {
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .profile-info .nickname {
+            font-size: 13px;
+            color: var(--primary-accent);
+            margin-bottom: 6px;
+        }
+
+        .profile-info .bio {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-bottom: 12px;
+        }
+
+        /* كروت المتسابقين */
+        .members-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .member-card {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .member-card:hover {
+            border-color: var(--primary-accent);
+            transform: translateY(-2px);
+        }
+
+        .member-card img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 6px;
+        }
+
+        /* النوافذ المنبثقة Modal */
+        .modal-overlay {
+            position: fixed;
+            top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px; left: 15px;
+            font-size: 20px;
+            color: var(--text-sub);
+            cursor: pointer;
         }
 
         .bottom-nav {
             position: fixed;
             bottom: 0; left: 0; width: 100%;
-            background-color: #151d2a;
+            background-color: var(--header-bg);
             display: flex;
             justify-content: space-around;
             padding: 10px 0;
-            border-top: 1px solid #26334d;
+            border-top: 1px solid var(--border-color);
             z-index: 1000;
         }
 
@@ -153,19 +391,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            color: #64748b;
+            color: var(--text-sub);
             font-size: 11px;
             cursor: pointer;
             width: 25%;
         }
 
         .nav-item.active {
-            color: #f59e0b;
+            color: var(--primary-accent);
             font-weight: bold;
         }
     </style>
 </head>
-<body>
+<body class="theme-gold">
 
     <!-- شاشة تسجيل الدخول -->
     <div id="loginOverlay">
@@ -176,7 +414,7 @@
                 <option value="mohammed">محمد</option>
                 <option value="saud">سعود</option>
             </select>
-            <p id="pinInstruction" style="font-size: 12px; color: #38bdf8; margin: 4px 0;"></p>
+            <p id="pinInstruction" style="font-size: 12px; color: var(--primary-accent); margin: 4px 0;"></p>
             <input type="password" id="loginPin" placeholder="أدخل الرمز السري (PIN)" maxlength="4">
             <button id="loginBtn" onclick="login()">دخول</button>
             <p id="loginError" style="color:#ef4444; font-size:12px; margin-top:8px; display:none;"></p>
@@ -195,55 +433,131 @@
             <div class="card">
                 <h3>⚽ المباريات والتوقعات</h3>
                 <div id="matchesList">
-                    <p style="text-align: center; color: #64748b;">جاري تحميل المباريات من السيرفر...</p>
+                    <p style="text-align: center; color: var(--text-sub);">جاري تحميل المباريات من السيرفر...</p>
                 </div>
             </div>
         </div>
 
         <!-- صفحة الترتيب -->
         <div id="standingsTab" class="tab-content">
+            <!-- شريط المباراة الجارية -->
+            <div id="liveMatchBanner" class="live-match-banner" style="display:none;">
+                <span class="live-tag">مباشر الان 🔴</span>
+                <div id="liveMatchTeams" style="font-size: 14px; margin-top:4px;">- vs -</div>
+                <div id="liveMatchScore" class="live-score-display">0 - 0</div>
+            </div>
+
             <div class="card">
                 <h3>📊 جدول الترتيب</h3>
                 <table>
                     <thead>
                         <tr>
-                            <th>الترتيب</th>
+                            <th>#</th>
                             <th>المتسابق</th>
+                            <th>توقع المباشر</th>
                             <th>النقاط</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboard">
-                        <tr><td>1</td><td>إياد 🏆</td><td>0</td></tr>
-                        <tr><td>2</td><td>محمد</td><td>0</td></tr>
-                        <tr><td>3</td><td>سعود</td><td>0</td></tr>
+                        <!-- يتم التعبئة ديناميكياً -->
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- صفحة الملف التعريفي -->
+        <!-- صفحة الملف التعريفي SBR UI -->
         <div id="profileTab" class="tab-content">
+            <div class="card profile-header-card">
+                <div id="myCoverPhoto" class="cover-photo"></div>
+                <div class="profile-avatar-container">
+                    <img id="myAvatarPhoto" class="profile-avatar" src="https://via.placeholder.com/80" alt="Avatar">
+                </div>
+                <div class="profile-info">
+                    <h2 id="profileName">-</h2>
+                    <div id="profileNickname" class="nickname">@اللقب</div>
+                    <div id="profileBio" class="bio">لا توجد نبذة تعريفية...</div>
+                    <button onclick="openEditProfileModal()" style="width:auto; padding: 6px 16px; font-size: 12px; background:#334155; color:white;">تعديل الملف الشخصي ✏️</button>
+                </div>
+            </div>
+
             <div class="card">
-                <h3>👤 الملف التعريفي</h3>
-                <p style="margin-bottom: 8px;"><b>الاسم:</b> <span id="profileName">-</span></p>
-                <p style="margin-bottom: 8px;"><b>الصلاحية:</b> <span id="profileRole">-</span></p>
-                <button onclick="resetMyPin()" style="margin-top:10px; background-color:#334155; color:white;">إعادة تعيين الرمز السري</button>
-                <button onclick="logout()" style="margin-top:10px; background-color:#ef4444; color:white;">تسجيل الخروج</button>
+                <h3>👥 قائمة المتسابقين</h3>
+                <div class="members-grid" id="membersGrid">
+                    <!-- يتم عرض كروت الاعضاء هنا -->
+                </div>
             </div>
         </div>
 
-        <!-- صفحة الإعدادات / لوحة التحكم -->
+        <!-- صفحة الإعدادات -->
         <div id="settingsTab" class="tab-content">
-            <div class="card" id="adminSection">
+            <!-- لوحة التحكم للمشرف -->
+            <div class="card" id="adminSection" style="display:none;">
                 <h3>⚙️ لوحة تحكم المشرف (إياد)</h3>
-                <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">إضافة مباراة جديدة للمتسابقين:</p>
-                <input type="text" id="team1" placeholder="الفريق الأول (مثال: السعودية)">
-                <input type="text" id="team2" placeholder="الفريق الثاني (مثال: الكويت)">
-                <button onclick="addMatchToCloud()">إضافة المباراة للسيرفر</button>
+                <p style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">إضافة مباراة جديدة:</p>
+                <input type="text" id="team1" placeholder="الفريق الأول">
+                <input type="text" id="team2" placeholder="الفريق الثاني">
+                <button onclick="addMatchToCloud()">نشر المباراة للسيرفر</button>
+
+                <hr style="border-color: var(--border-color); margin: 15px 0;">
+
+                <p style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">إدارة المباراة الجارية المباشرة:</p>
+                <select id="adminMatchSelect" onchange="loadAdminMatchData()">
+                    <option value="">اختر مباراة لضبط المباشر...</option>
+                </select>
+                <div style="display:flex; gap:8px;">
+                    <input type="number" id="liveScore1" placeholder="أهداف 1">
+                    <input type="number" id="liveScore2" placeholder="أهداف 2">
+                </div>
+                <button onclick="updateLiveMatch(true)" style="background:#22c55e; color:white;">تحديث النتيجة وجعلها جارية 🔴</button>
+                <button onclick="updateLiveMatch(false)" style="background:#ef4444; color:white; margin-top:4px;">إنهاء المباراة المباشرة ⏹️</button>
             </div>
+
+            <!-- ثيمات التطبيق -->
             <div class="card">
-                <h3>⚙️ إعدادات التطبيق</h3>
-                <p style="color:#94a3b8; font-size:13px;">تطبيق مسابقة كأس الخليج 27 الإصدار السحابي 2.0</p>
+                <h3>🎨 ستايل وثيم التطبيق</h3>
+                <select id="themeSelect" onchange="changeTheme(this.value)">
+                    <option value="theme-gold">🏆 ذهبي وأسود (أساسي)</option>
+                    <option value="theme-snow">❄️ شتوي ثلجي</option>
+                    <option value="theme-volcano">🌋 ناري بركاني</option>
+                    <option value="theme-saudi">🇸🇦 دعم المنتخب السعودي</option>
+                    <option value="theme-leader" id="leaderThemeOption" disabled>👑 ثيم المتصدر (حصري للمركز الأول)</option>
+                </select>
+            </div>
+
+            <!-- أزرار الحساب المُنقولة هنا -->
+            <div class="card">
+                <h3>🔐 إعدادات الحساب</h3>
+                <button onclick="resetMyPin()" style="background-color:#334155; color:white;">إعادة تعيين الرمز السري</button>
+                <button onclick="logout()" style="background-color:#ef4444; color:white;">تسجيل الخروج</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تعديل البروفايل -->
+    <div id="editProfileModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('editProfileModal')">&times;</span>
+            <h3 style="color:var(--primary-accent); margin-bottom:12px;">تعديل الملف الشخصي</h3>
+            <input type="text" id="editNickname" placeholder="اللقب (Nickname)">
+            <input type="text" id="editBio" placeholder="النبذة التعريفية (Bio)">
+            <input type="text" id="editAvatar" placeholder="رابط الصوره الشخصية (Avatar URL)">
+            <input type="text" id="editCover" placeholder="رابط صورة الغلاف (Cover URL)">
+            <button onclick="saveProfileToCloud()">حفظ في التخزين السحابي ☁️</button>
+        </div>
+    </div>
+
+    <!-- نافذة عرض كارت العضو -->
+    <div id="memberCardModal" class="modal-overlay">
+        <div class="modal-content" style="padding:0; overflow:hidden;">
+            <span class="close-modal" onclick="closeModal('memberCardModal')" style="z-index:10; background:rgba(0,0,0,0.5); border-radius:50%; width:28px; height:28px; text-align:center; line-height:25px;">&times;</span>
+            <div id="viewMemberCover" class="cover-photo"></div>
+            <div class="profile-avatar-container">
+                <img id="viewMemberAvatar" class="profile-avatar" src="" alt="Avatar">
+            </div>
+            <div class="profile-info">
+                <h2 id="viewMemberName">-</h2>
+                <div id="viewMemberNickname" class="nickname">@اللقب</div>
+                <div id="viewMemberBio" class="bio">...</div>
             </div>
         </div>
     </div>
@@ -257,7 +571,6 @@
     </nav>
 
     <script>
-        // مفاتيح الربط السحابية الخاصة بمشروعك
         const firebaseConfig = {
             apiKey: "AIzaSyByj9FGHUEXKg2E-7C_Fw1JR7KvyLpjPzY",
             authDomain: "hc-27-league.firebaseapp.com",
@@ -269,12 +582,14 @@
             measurementId: "G-LGE3164S2P"
         };
 
-        // تشغيل الربط السحابي
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         const names = { eyad: "إياد", mohammed: "محمد", saud: "سعود" };
         let currentUser = null;
+        let activeLiveMatchData = null;
+        let usersScores = { eyad: 0, mohammed: 0, saud: 0 };
+        let currentLeader = null;
 
         function checkUserPinState() {
             const user = document.getElementById('loginUser').value;
@@ -320,9 +635,12 @@
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('userInfoHeader').innerText = `المستخدم: ${names[user]}`;
             document.getElementById('profileName').innerText = names[user];
-            document.getElementById('profileRole').innerText = user === 'eyad' ? 'المشرف العام' : 'متسابق';
             document.getElementById('adminSection').style.display = (user === 'eyad') ? 'block' : 'none';
+
             listenToMatches();
+            listenToLiveMatch();
+            listenToProfiles();
+            loadMyProfile();
         }
 
         function logout() {
@@ -348,15 +666,22 @@
             element.classList.add('active');
         }
 
-        // 1. إضافة مباراة جديدة وحفظها في السيرفر السحابي
+        // --- الثيمات ---
+        function changeTheme(themeClass) {
+            if (themeClass === 'theme-leader' && currentLeader !== currentUser) {
+                alert('عذراً! ثيم المتصدر متاح فقط لصاحب المركز الأول حالياً 🏆');
+                document.getElementById('themeSelect').value = 'theme-gold';
+                return;
+            }
+            document.body.className = themeClass;
+            localStorage.setItem('app_theme', themeClass);
+        }
+
+        // --- إضافة وتحديث المباريات ---
         function addMatchToCloud() {
             const t1 = document.getElementById('team1').value;
             const t2 = document.getElementById('team2').value;
-
-            if (!t1 || !t2) {
-                alert('ادخل اسامي الفريقين');
-                return;
-            }
+            if (!t1 || !t2) return alert('ادخل اسامي الفريقين');
 
             db.ref('matches').push({
                 team1: t1,
@@ -369,14 +694,15 @@
             alert('تم نشر المباراة لجميع المتسابقين سحابياً!');
         }
 
-        // 2. مزامنة المباريات مباشرة من السيرفر لكل المتسابقين
         function listenToMatches() {
             db.ref('matches').on('value', (snapshot) => {
                 const list = document.getElementById('matchesList');
+                const adminSelect = document.getElementById('adminMatchSelect');
                 list.innerHTML = '';
+                adminSelect.innerHTML = '<option value="">اختر مباراة لضبط المباشر...</option>';
 
                 if (!snapshot.exists()) {
-                    list.innerHTML = '<p style="text-align:center; color:#64748b;">لا توجد مباريات مضافة حالياً.</p>';
+                    list.innerHTML = '<p style="text-align:center; color:var(--text-sub);">لا توجد مباريات مضافة حالياً.</p>';
                     return;
                 }
 
@@ -384,9 +710,11 @@
                     const matchId = child.key;
                     const data = child.val();
 
+                    adminSelect.innerHTML += `<option value="${matchId}">${data.team1} vs ${data.team2}</option>`;
+
                     list.innerHTML += `
-                        <div style="background:#0b0f19; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #26334d;">
-                            <h4 style="text-align:center; color:#f59e0b; margin-bottom:8px;">${data.team1} vs ${data.team2}</h4>
+                        <div style="background:var(--bg-color); padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid var(--border-color);">
+                            <h4 style="text-align:center; color:var(--primary-accent); margin-bottom:8px;">${data.team1} vs ${data.team2}</h4>
                             <div style="display:flex; gap:8px;">
                                 <input type="number" id="score1_${matchId}" placeholder="أهداف ${data.team1}">
                                 <input type="number" id="score2_${matchId}" placeholder="أهداف ${data.team2}">
@@ -398,23 +726,191 @@
             });
         }
 
-        // 3. حفظ التوقع سحابياً لكل لاعب
         function savePrediction(matchId) {
             const s1 = document.getElementById(`score1_${matchId}`).value;
             const s2 = document.getElementById(`score2_${matchId}`).value;
-
-            if (s1 === '' || s2 === '') {
-                alert('يرجى كتابة النتيجة كاملة');
-                return;
-            }
+            if (s1 === '' || s2 === '') return alert('يرجى كتابة النتيجة كاملة');
 
             db.ref(`predictions/${matchId}/${currentUser}`).set({
-                score1: s1,
-                score2: s2,
+                score1: parseInt(s1),
+                score2: parseInt(s2),
                 updatedAt: Date.now()
             });
+            alert('تم حفظ توقعك بنجاح!');
+        }
 
-            alert('تم حفظ توقعك في السيرفر بنجاح!');
+        // --- إدارة المباراة المباشرة وترتيب المتسابقين ---
+        function updateLiveMatch(isLive) {
+            const matchId = document.getElementById('adminMatchSelect').value;
+            const s1 = document.getElementById('liveScore1').value;
+            const s2 = document.getElementById('liveScore2').value;
+
+            if (!matchId && isLive) return alert('اختر مباراة أولاً');
+
+            db.ref('liveMatch').set({
+                matchId: matchId,
+                score1: s1 !== '' ? parseInt(s1) : 0,
+                score2: s2 !== '' ? parseInt(s2) : 0,
+                isLive: isLive
+            });
+
+            alert(isLive ? 'تم تفعيل المباراة المباشرة!' : 'تم إيقاف المباراة المباشرة');
+        }
+
+        function listenToLiveMatch() {
+            db.ref('liveMatch').on('value', (snapshot) => {
+                const banner = document.getElementById('liveMatchBanner');
+                if (snapshot.exists() && snapshot.val().isLive) {
+                    activeLiveMatchData = snapshot.val();
+                    banner.style.display = 'block';
+
+                    // جلب اسم الفريقين
+                    db.ref(`matches/${activeLiveMatchData.matchId}`).once('value', (mSnap) => {
+                        if (mSnap.exists()) {
+                            const m = mSnap.val();
+                            document.getElementById('liveMatchTeams').innerText = `${m.team1} vs ${m.team2}`;
+                            document.getElementById('liveMatchScore').innerText = `${activeLiveMatchData.score1} - ${activeLiveMatchData.score2}`;
+                        }
+                    });
+                } else {
+                    activeLiveMatchData = null;
+                    banner.style.display = 'none';
+                }
+                updateLeaderboard();
+            });
+        }
+
+        function updateLeaderboard() {
+            db.ref('predictions').on('value', (snapshot) => {
+                const preds = snapshot.val() || {};
+                const leaderboardBody = document.getElementById('leaderboard');
+                leaderboardBody.innerHTML = '';
+
+                let usersList = ['eyad', 'mohammed', 'saud'].map(uKey => {
+                    let livePredStr = '-';
+                    let predClass = '';
+
+                    if (activeLiveMatchData && preds[activeLiveMatchData.matchId] && preds[activeLiveMatchData.matchId][uKey]) {
+                        const p = preds[activeLiveMatchData.matchId][uKey];
+                        livePredStr = `${p.score1} - ${p.score2}`;
+
+                        const l1 = activeLiveMatchData.score1;
+                        const l2 = activeLiveMatchData.score2;
+
+                        // حساب اللون
+                        if (p.score1 === l1 && p.score2 === l2) {
+                            predClass = 'pred-exact'; // ذهبي
+                        } else if ((p.score1 > p.score2 && l1 > l2) || (p.score1 < p.score2 && l1 < l2) || (p.score1 === p.score2 && l1 === l2)) {
+                            predClass = 'pred-correct'; // أخضر
+                        } else {
+                            predClass = 'pred-wrong'; // أحمر
+                        }
+                    }
+
+                    return {
+                        key: uKey,
+                        name: names[uKey],
+                        points: usersScores[uKey] || 0,
+                        livePredStr: livePredStr,
+                        predClass: predClass
+                    };
+                });
+
+                // ترتيب حس النقاط
+                usersList.sort((a, b) => b.points - a.points);
+                currentLeader = usersList[0].key;
+
+                // تفعيل/إلغاء خيار ثيم المتصدر
+                const leaderOpt = document.getElementById('leaderThemeOption');
+                if (currentLeader === currentUser) {
+                    leaderOpt.disabled = false;
+                    leaderOpt.innerText = '👑 ثيم المتصدر (مُفعل لك الآن!)';
+                } else {
+                    leaderOpt.disabled = true;
+                    leaderOpt.innerText = '👑 ثيم المتصدر (حصري للمركز الأول)';
+                }
+
+                usersList.forEach((user, index) => {
+                    leaderboardBody.innerHTML += `
+                        <tr>
+                            <td>${index + 1} ${index === 0 ? '🏆' : ''}</td>
+                            <td><b>${user.name}</b></td>
+                            <td><span class="pred-badge ${user.predClass}">${user.livePredStr}</span></td>
+                            <td>${user.points}</td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        // --- إدارة البروفايل والكروت ---
+        function loadMyProfile() {
+            db.ref(`users/${currentUser}`).on('value', (snap) => {
+                const data = snap.val() || {};
+                document.getElementById('profileNickname').innerText = data.nickname ? `@${data.nickname}` : '@اللقب';
+                document.getElementById('profileBio').innerText = data.bio || 'لا توجد نبذة تعريفية...';
+                if (data.avatar) document.getElementById('myAvatarPhoto').src = data.avatar;
+                if (data.cover) document.getElementById('myCoverPhoto').style.backgroundImage = `url('${data.cover}')`;
+            });
+        }
+
+        function listenToProfiles() {
+            db.ref('users').on('value', (snap) => {
+                const allUsers = snap.val() || {};
+                const grid = document.getElementById('membersGrid');
+                grid.innerHTML = '';
+
+                ['eyad', 'mohammed', 'saud'].forEach(uKey => {
+                    const uData = allUsers[uKey] || {};
+                    const avatarSrc = uData.avatar || 'https://via.placeholder.com/80';
+
+                    grid.innerHTML += `
+                        <div class="member-card" onclick="openMemberCard('${uKey}')">
+                            <img src="${avatarSrc}" alt="Avatar">
+                            <div style="font-size:13px; font-weight:bold;">${names[uKey]}</div>
+                            <div style="font-size:11px; color:var(--primary-accent);">${uData.nickname ? '@'+uData.nickname : ''}</div>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        function openEditProfileModal() {
+            db.ref(`users/${currentUser}`).once('value', (snap) => {
+                const data = snap.val() || {};
+                document.getElementById('editNickname').value = data.nickname || '';
+                document.getElementById('editBio').value = data.bio || '';
+                document.getElementById('editAvatar').value = data.avatar || '';
+                document.getElementById('editCover').value = data.cover || '';
+                document.getElementById('editProfileModal').style.display = 'flex';
+            });
+        }
+
+        function saveProfileToCloud() {
+            db.ref(`users/${currentUser}`).set({
+                nickname: document.getElementById('editNickname').value.trim(),
+                bio: document.getElementById('editBio').value.trim(),
+                avatar: document.getElementById('editAvatar').value.trim(),
+                cover: document.getElementById('editCover').value.trim()
+            });
+            closeModal('editProfileModal');
+            alert('تم حفظ الملف الشخصي بنجاح!');
+        }
+
+        function openMemberCard(uKey) {
+            db.ref(`users/${uKey}`).once('value', (snap) => {
+                const data = snap.val() || {};
+                document.getElementById('viewMemberName').innerText = names[uKey];
+                document.getElementById('viewMemberNickname').innerText = data.nickname ? `@${data.nickname}` : '';
+                document.getElementById('viewMemberBio').innerText = data.bio || 'لا توجد نبذة تعريفية.';
+                document.getElementById('viewMemberAvatar').src = data.avatar || 'https://via.placeholder.com/80';
+                document.getElementById('viewMemberCover').style.backgroundImage = data.cover ? `url('${data.cover}')` : 'none';
+                document.getElementById('memberCardModal').style.display = 'flex';
+            });
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
         }
 
         checkUserPinState();
