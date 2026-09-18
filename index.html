@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>مسابقة التوقعات الثلاثية لكأس الخليج 27</title>
+
+    <!-- مكتبات Firebase السحابية -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -18,7 +23,6 @@
             padding-bottom: 75px;
         }
 
-        /* شاشة تسجيل الدخول بالرمز السري */
         #loginOverlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -70,7 +74,6 @@
             transform: scale(0.98);
         }
 
-        /* الهيدر */
         header {
             background: #151d2a;
             padding: 15px;
@@ -92,7 +95,6 @@
             margin-top: 4px;
         }
 
-        /* المحتوى الرئيسي والصفحات */
         .container {
             padding: 15px;
         }
@@ -119,7 +121,6 @@
             color: #38bdf8;
         }
 
-        /* جدول الترتيب */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -137,16 +138,9 @@
             font-size: 14px;
         }
 
-        td {
-            font-size: 15px;
-        }
-
-        /* الشريط السفلي (Bottom Navigation) */
         .bottom-nav {
             position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
+            bottom: 0; left: 0; width: 100%;
             background-color: #151d2a;
             display: flex;
             justify-content: space-around;
@@ -160,15 +154,9 @@
             flex-direction: column;
             align-items: center;
             color: #64748b;
-            text-decoration: none;
             font-size: 11px;
             cursor: pointer;
             width: 25%;
-        }
-
-        .nav-item .icon {
-            font-size: 18px;
-            margin-bottom: 3px;
         }
 
         .nav-item.active {
@@ -179,7 +167,7 @@
 </head>
 <body>
 
-    <!-- شاشة تسجيل الدخول بالرمز السري -->
+    <!-- شاشة تسجيل الدخول -->
     <div id="loginOverlay">
         <div class="login-card">
             <h2>🏆 دخول المسابقة</h2>
@@ -207,7 +195,7 @@
             <div class="card">
                 <h3>⚽ المباريات والتوقعات</h3>
                 <div id="matchesList">
-                    <p style="text-align: center; color: #64748b;">لا توجد مباريات مضافة حالياً.</p>
+                    <p style="text-align: center; color: #64748b;">جاري تحميل المباريات من السيرفر...</p>
                 </div>
             </div>
         </div>
@@ -251,55 +239,49 @@
                 <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">إضافة مباراة جديدة للمتسابقين:</p>
                 <input type="text" id="team1" placeholder="الفريق الأول (مثال: السعودية)">
                 <input type="text" id="team2" placeholder="الفريق الثاني (مثال: الكويت)">
-                <button onclick="addMatch()">إضافة المباراة</button>
+                <button onclick="addMatchToCloud()">إضافة المباراة للسيرفر</button>
             </div>
             <div class="card">
                 <h3>⚙️ إعدادات التطبيق</h3>
-                <p style="color:#94a3b8; font-size:13px;">تطبيق مسابقة كأس الخليج 27 الإصدار 1.0</p>
+                <p style="color:#94a3b8; font-size:13px;">تطبيق مسابقة كأس الخليج 27 الإصدار السحابي 2.0</p>
             </div>
         </div>
     </div>
 
-    <!-- الشريط السفلي (القوائم) -->
+    <!-- الشريط السفلي -->
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('matchesTab', this)">
-            <span class="icon">⚽</span>
-            <span>المباريات</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('standingsTab', this)">
-            <span class="icon">🏆</span>
-            <span>الترتيب</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('profileTab', this)">
-            <span class="icon">👤</span>
-            <span>الملف التعريفي</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('settingsTab', this)">
-            <span class="icon">⚙️</span>
-            <span>الإعدادات</span>
-        </div>
+        <div class="nav-item active" onclick="switchTab('matchesTab', this)"><span>⚽ المباريات</span></div>
+        <div class="nav-item" onclick="switchTab('standingsTab', this)"><span>🏆 الترتيب</span></div>
+        <div class="nav-item" onclick="switchTab('profileTab', this)"><span>👤 الملف التعريفي</span></div>
+        <div class="nav-item" onclick="switchTab('settingsTab', this)"><span>⚙️ الإعدادات</span></div>
     </nav>
 
     <script>
-        const names = {
-            eyad: "إياد",
-            mohammed: "محمد",
-            saud: "سعود"
+        // مفاتيح الربط السحابية الخاصة بمشروعك
+        const firebaseConfig = {
+            apiKey: "AIzaSyByj9FGHUEXKg2E-7C_Fw1JR7KvyLpjPzY",
+            authDomain: "hc-27-league.firebaseapp.com",
+            databaseURL: "https://hc-27-league-default-rtdb.firebaseio.com",
+            projectId: "hc-27-league",
+            storageBucket: "hc-27-league.firebasestorage.app",
+            messagingSenderId: "833043188997",
+            appId: "1:833043188997:web:5f7dd22f2598907c3fbb6c",
+            measurementId: "G-LGE3164S2P"
         };
 
+        // تشغيل الربط السحابي
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        const names = { eyad: "إياد", mohammed: "محمد", saud: "سعود" };
         let currentUser = null;
 
-        // التحقق مما إذا كان المستخدم يملك رمز سري سابق أم لا
         function checkUserPinState() {
             const user = document.getElementById('loginUser').value;
             const savedPin = localStorage.getItem('pin_' + user);
             const pinInstruction = document.getElementById('pinInstruction');
             const loginBtn = document.getElementById('loginBtn');
-            const loginPinInput = document.getElementById('loginPin');
-            const errorMsg = document.getElementById('loginError');
-
-            errorMsg.style.display = 'none';
-            loginPinInput.value = '';
+            document.getElementById('loginError').style.display = 'none';
 
             if (!savedPin) {
                 pinInstruction.innerText = 'أول دخول لك! أنشئ رمز سري جديد (4 أرقام)';
@@ -317,24 +299,19 @@
             const errorMsg = document.getElementById('loginError');
 
             if (!pin || pin.length < 4) {
-                errorMsg.innerText = 'يرجى إدخال رمز سري مكون من 4 أرقام!';
+                errorMsg.innerText = 'يرجى إدخال رمز مكون من 4 أرقام!';
                 errorMsg.style.display = 'block';
                 return;
             }
 
-            // حالة إنشاء رمز سري لأول مرة
             if (!savedPin) {
                 localStorage.setItem('pin_' + user, pin);
-                alert('تم إنشاء رمزك السري بنجاح!');
+                completeLogin(user);
+            } else if (savedPin === pin) {
                 completeLogin(user);
             } else {
-                // حالة الدخول برمز محدد سابقاً
-                if (savedPin === pin) {
-                    completeLogin(user);
-                } else {
-                    errorMsg.innerText = 'الرمز السري غير صحيح!';
-                    errorMsg.style.display = 'block';
-                }
+                errorMsg.innerText = 'الرمز السري غير صحيح!';
+                errorMsg.style.display = 'block';
             }
         }
 
@@ -344,14 +321,12 @@
             document.getElementById('userInfoHeader').innerText = `المستخدم: ${names[user]}`;
             document.getElementById('profileName').innerText = names[user];
             document.getElementById('profileRole').innerText = user === 'eyad' ? 'المشرف العام' : 'متسابق';
-            
             document.getElementById('adminSection').style.display = (user === 'eyad') ? 'block' : 'none';
-            document.getElementById('loginError').style.display = 'none';
+            listenToMatches();
         }
 
         function logout() {
             currentUser = null;
-            document.getElementById('loginPin').value = '';
             document.getElementById('loginOverlay').style.display = 'flex';
             checkUserPinState();
         }
@@ -369,42 +344,79 @@
         function switchTab(tabId, element) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-
             document.getElementById(tabId).classList.add('active');
             element.classList.add('active');
         }
 
-        function addMatch() {
+        // 1. إضافة مباراة جديدة وحفظها في السيرفر السحابي
+        function addMatchToCloud() {
             const t1 = document.getElementById('team1').value;
             const t2 = document.getElementById('team2').value;
 
             if (!t1 || !t2) {
-                alert('الرجاء إدخال اسم الفريقين');
+                alert('ادخل اسامي الفريقين');
                 return;
             }
 
-            const list = document.getElementById('matchesList');
-            if (list.innerHTML.includes('لا توجد مباريات')) {
-                list.innerHTML = '';
-            }
-
-            list.innerHTML += `
-                <div style="background:#0b0f19; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #26334d;">
-                    <h4 style="text-align:center; color:#f59e0b; margin-bottom:8px;">${t1} vs ${t2}</h4>
-                    <div style="display:flex; gap:8px;">
-                        <input type="number" placeholder="أهداف ${t1}">
-                        <input type="number" placeholder="أهداف ${t2}">
-                    </div>
-                    <button style="margin-top:6px; font-size:13px;">حفظ التوقع</button>
-                </div>
-            `;
+            db.ref('matches').push({
+                team1: t1,
+                team2: t2,
+                createdAt: Date.now()
+            });
 
             document.getElementById('team1').value = '';
             document.getElementById('team2').value = '';
-            alert('تمت إضافة المباراة بنجاح!');
+            alert('تم نشر المباراة لجميع المتسابقين سحابياً!');
         }
 
-        // تشغيل التصفح والتأكد من حالة الرمز فور فتح الصفحة
+        // 2. مزامنة المباريات مباشرة من السيرفر لكل المتسابقين
+        function listenToMatches() {
+            db.ref('matches').on('value', (snapshot) => {
+                const list = document.getElementById('matchesList');
+                list.innerHTML = '';
+
+                if (!snapshot.exists()) {
+                    list.innerHTML = '<p style="text-align:center; color:#64748b;">لا توجد مباريات مضافة حالياً.</p>';
+                    return;
+                }
+
+                snapshot.forEach((child) => {
+                    const matchId = child.key;
+                    const data = child.val();
+
+                    list.innerHTML += `
+                        <div style="background:#0b0f19; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #26334d;">
+                            <h4 style="text-align:center; color:#f59e0b; margin-bottom:8px;">${data.team1} vs ${data.team2}</h4>
+                            <div style="display:flex; gap:8px;">
+                                <input type="number" id="score1_${matchId}" placeholder="أهداف ${data.team1}">
+                                <input type="number" id="score2_${matchId}" placeholder="أهداف ${data.team2}">
+                            </div>
+                            <button onclick="savePrediction('${matchId}')" style="margin-top:6px; font-size:13px;">حفظ التوقع</button>
+                        </div>
+                    `;
+                });
+            });
+        }
+
+        // 3. حفظ التوقع سحابياً لكل لاعب
+        function savePrediction(matchId) {
+            const s1 = document.getElementById(`score1_${matchId}`).value;
+            const s2 = document.getElementById(`score2_${matchId}`).value;
+
+            if (s1 === '' || s2 === '') {
+                alert('يرجى كتابة النتيجة كاملة');
+                return;
+            }
+
+            db.ref(`predictions/${matchId}/${currentUser}`).set({
+                score1: s1,
+                score2: s2,
+                updatedAt: Date.now()
+            });
+
+            alert('تم حفظ توقعك في السيرفر بنجاح!');
+        }
+
         checkUserPinState();
     </script>
 </body>
