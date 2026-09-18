@@ -3,160 +3,362 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مسابقة التوقعات</title>
+    <title>مسابقة التوقعات الثلاثية لكأس الخليج 27</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 15px;
-            direction: rtl;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        header {
-            background-color: #1e293b;
-            padding: 15px;
-            border-radius: 12px;
+
+        body {
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            padding-bottom: 75px;
+        }
+
+        /* شاشة تسجيل الدخول بالرمز السري */
+        #loginOverlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0b0f19;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .login-card {
+            background: #151d2a;
+            padding: 25px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 350px;
             text-align: center;
-            margin-bottom: 20px;
-            border: 1px solid #334155;
+            border: 1px solid #26334d;
         }
-        .card {
-            background-color: #1e293b;
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            border: 1px solid #334155;
+
+        .login-card h2 {
+            color: #f59e0b;
+            margin-bottom: 15px;
+            font-size: 20px;
         }
+
         select, input, button {
             width: 100%;
             padding: 12px;
             margin: 8px 0;
-            border-radius: 8px;
-            border: 1px solid #475569;
-            background-color: #0f172a;
+            border-radius: 10px;
+            border: 1px solid #26334d;
+            background-color: #0b0f19;
             color: #fff;
-            font-size: 16px;
-            box-sizing: border-box;
+            font-size: 15px;
+            outline: none;
         }
+
         button {
-            background-color: #2563eb;
+            background-color: #f59e0b;
+            color: #000;
             font-weight: bold;
             cursor: pointer;
             border: none;
+            transition: 0.2s;
         }
-        button:hover {
-            background-color: #1d4ed8;
+
+        button:active {
+            transform: scale(0.98);
         }
+
+        /* الهيدر */
+        header {
+            background: #151d2a;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #26334d;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        header h1 {
+            font-size: 17px;
+            color: #f59e0b;
+        }
+
+        header p {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* المحتوى الرئيسي والصفحات */
+        .container {
+            padding: 15px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: #151d2a;
+            padding: 15px;
+            border-radius: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #26334d;
+        }
+
+        .card h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #38bdf8;
+        }
+
+        /* جدول الترتيب */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
+
         th, td {
-            padding: 10px;
+            padding: 12px;
             text-align: center;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid #26334d;
         }
+
         th {
-            background-color: #334155;
+            background-color: #1e293b;
+            color: #f59e0b;
+            font-size: 14px;
+        }
+
+        td {
+            font-size: 15px;
+        }
+
+        /* الشريط السفلي (Bottom Navigation) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #151d2a;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #26334d;
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 11px;
+            cursor: pointer;
+            width: 25%;
+        }
+
+        .nav-item .icon {
+            font-size: 18px;
+            margin-bottom: 3px;
+        }
+
+        .nav-item.active {
+            color: #f59e0b;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>🏆 مسابقة التوقعات الثلاثية</h1>
-        <p>إياد | محمد | سعود</p>
-    </header>
-
-    <!-- اختيار المستخدم -->
-    <div class="card">
-        <label for="userSelect"><b>👤 اختر حسابك للدخول:</b></label>
-        <select id="userSelect">
-            <option value="eyad">إياد (المشرف)</option>
-            <option value="mohammed">محمد</option>
-            <option value="saud">سعود</option>
-        </select>
-    </div>
-
-    <!-- جدول الترتيب -->
-    <div class="card">
-        <h2>📊 جدول الترتيب</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>الترتيب</th>
-                    <th>المتسابق</th>
-                    <th>النقاط</th>
-                </tr>
-            </thead>
-            <tbody id="leaderboard">
-                <tr><td>1</td><td>إياد 👑</td><td>0</td></tr>
-                <tr><td>2</td><td>محمد ⚽</td><td>0</td></tr>
-                <tr><td>3</td><td>سعود ⚽</td><td>0</td></tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- قائمة المباريات -->
-    <div class="card">
-        <h2>⚽ المباريات والتوقعات</h2>
-        <div id="matchesContainer">
-            <p style="text-align: center; color: #94a3b8;">لا توجد مباريات مضافة حالياً.</p>
+    <!-- شاشة تسجيل الدخول بالرمز السري -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <h2>🏆 دخول المسابقة</h2>
+            <select id="loginUser">
+                <option value="eyad">إياد (المشرف)</option>
+                <option value="mohammed">محمد</option>
+                <option value="saud">سعود</option>
+            </select>
+            <input type="password" id="loginPin" placeholder="أدخل الرمز السري (PIN)" maxlength="4">
+            <button onclick="login()">دخول</button>
+            <p id="loginError" style="color:#ef4444; font-size:12px; margin-top:8px; display:none;">الرمز السري غير صحيح!</p>
         </div>
     </div>
 
-    <!-- لوحة تحكم المشرف (إياد) -->
-    <div class="card" id="adminPanel">
-        <h2>⚙️ لوحة تحكم المشرف (إياد)</h2>
-        <input type="text" id="team1" placeholder="الفريق الأول (مثلاً: الهلال)">
-        <input type="text" id="team2" placeholder="الفريق الثاني (مثلاً: النصر)">
-        <button onclick="addMatch()">إضافة مباراة جديدة</button>
+    <!-- الشريط العلوي -->
+    <header>
+        <h1>🏆 مسابقة التوقعات الثلاثية لكأس الخليج 27</h1>
+        <p id="userInfoHeader">تسجيل الدخول مطلوب</p>
+    </header>
+
+    <div class="container">
+        <!-- صفحة المباريات -->
+        <div id="matchesTab" class="tab-content active">
+            <div class="card">
+                <h3>⚽ المباريات والتوقعات</h3>
+                <div id="matchesList">
+                    <p style="text-align: center; color: #64748b;">لا توجد مباريات مضافة حالياً.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- صفحة الترتيب -->
+        <div id="standingsTab" class="tab-content">
+            <div class="card">
+                <h3>📊 جدول الترتيب</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الترتيب</th>
+                            <th>المتسابق</th>
+                            <th>النقاط</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard">
+                        <tr><td>1</td><td>إياد 🏆</td><td>0</td></tr>
+                        <tr><td>2</td><td>محمد</td><td>0</td></tr>
+                        <tr><td>3</td><td>سعود</td><td>0</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- صفحة الملف التعريفي -->
+        <div id="profileTab" class="tab-content">
+            <div class="card">
+                <h3>👤 الملف التعريفي</h3>
+                <p style="margin-bottom: 8px;"><b>الاسم:</b> <span id="profileName">-</span></p>
+                <p><b>الصلاحية:</b> <span id="profileRole">-</span></p>
+                <button onclick="logout()" style="margin-top:20px; background-color:#ef4444; color:white;">تسجيل الخروج</button>
+            </div>
+        </div>
+
+        <!-- صفحة الإعدادات / لوحة التحكم -->
+        <div id="settingsTab" class="tab-content">
+            <div class="card" id="adminSection">
+                <h3>⚙️ لوحة تحكم المشرف (إياد)</h3>
+                <p style="font-size:12px; color:#94a3b8; margin-bottom:10px;">إضافة مباراة جديدة للمتسابقين:</p>
+                <input type="text" id="team1" placeholder="الفريق الأول (مثال: السعودية)">
+                <input type="text" id="team2" placeholder="الفريق الثاني (مثال: الكويت)">
+                <button onclick="addMatch()">إضافة المباراة</button>
+            </div>
+            <div class="card">
+                <h3>⚙️ إعدادات التطبيق</h3>
+                <p style="color:#94a3b8; font-size:13px;">تطبيق مسابقة كأس الخليج 27 الإصدار 1.0</p>
+            </div>
+        </div>
     </div>
 
+    <!-- الشريط السفلي (القوائم) -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('matchesTab', this)">
+            <span class="icon">⚽</span>
+            <span>المباريات</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('standingsTab', this)">
+            <span class="icon">🏆</span>
+            <span>الترتيب</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('profileTab', this)">
+            <span class="icon">👤</span>
+            <span>الملف التعريفي</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('settingsTab', this)">
+            <span class="icon">⚙️</span>
+            <span>الإعدادات</span>
+        </div>
+    </nav>
+
     <script>
-        const userSelect = document.getElementById('userSelect');
-        const adminPanel = document.getElementById('adminPanel');
+        // الرموز السرية الحالية
+        const pins = {
+            eyad: "1234",
+            mohammed: "1111",
+            saud: "2222"
+        };
 
-        // إخفاء أو إظهار لوحة المشرف بناءً على الاختيار
-        userSelect.addEventListener('change', function() {
-            if (this.value === 'eyad') {
-                adminPanel.style.display = 'block';
+        const names = {
+            eyad: "إياد",
+            mohammed: "محمد",
+            saud: "سعود"
+        };
+
+        let currentUser = null;
+
+        function login() {
+            const user = document.getElementById('loginUser').value;
+            const pin = document.getElementById('loginPin').value;
+            const errorMsg = document.getElementById('loginError');
+
+            if (pins[user] === pin) {
+                currentUser = user;
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('userInfoHeader').innerText = `المستخدم: ${names[user]}`;
+                document.getElementById('profileName').innerText = names[user];
+                document.getElementById('profileRole').innerText = user === 'eyad' ? 'المشرف العام' : 'متسابق';
+                
+                // إظهار لوحة إدخال المباريات للمشرف فقط
+                document.getElementById('adminSection').style.display = (user === 'eyad') ? 'block' : 'none';
+
+                errorMsg.style.display = 'none';
             } else {
-                adminPanel.style.display = 'none';
+                errorMsg.style.display = 'block';
             }
-        });
+        }
 
-        // إضافة مباراة جديدة
+        function logout() {
+            currentUser = null;
+            document.getElementById('loginPin').value = '';
+            document.getElementById('loginOverlay').style.display = 'flex';
+        }
+
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
         function addMatch() {
             const t1 = document.getElementById('team1').value;
             const t2 = document.getElementById('team2').value;
-            
+
             if (!t1 || !t2) {
                 alert('الرجاء إدخال اسم الفريقين');
                 return;
             }
 
-            const container = document.getElementById('matchesContainer');
-            if (container.innerHTML.includes('لا توجد مباريات')) {
-                container.innerHTML = '';
+            const list = document.getElementById('matchesList');
+            if (list.innerHTML.includes('لا توجد مباريات')) {
+                list.innerHTML = '';
             }
 
-            container.innerHTML += `
-                <div style="background:#0f172a; padding:15px; margin:10px 0; border-radius:8px; border:1px solid #334155;">
-                    <h3 style="margin:0 0 10px 0; text-align:center;">${t1} VS ${t2}</h3>
-                    <div style="display:flex; gap:10px;">
-                        <input type="number" placeholder="اهداف ${t1}">
-                        <input type="number" placeholder="اهداف ${t2}">
+            list.innerHTML += `
+                <div style="background:#0b0f19; padding:12px; margin-bottom:10px; border-radius:10px; border:1px solid #26334d;">
+                    <h4 style="text-align:center; color:#f59e0b; margin-bottom:8px;">${t1} vs ${t2}</h4>
+                    <div style="display:flex; gap:8px;">
+                        <input type="number" placeholder="أهداف ${t1}">
+                        <input type="number" placeholder="أهداف ${t2}">
                     </div>
-                    <button style="margin-top:8px;">حفظ التوقع</button>
+                    <button style="margin-top:6px; font-size:13px;">حفظ التوقع</button>
                 </div>
             `;
 
             document.getElementById('team1').value = '';
             document.getElementById('team2').value = '';
+            alert('تمت إضافة المباراة بنجاح!');
         }
     </script>
 </body>
 </html>
+
