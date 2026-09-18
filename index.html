@@ -183,14 +183,15 @@
     <div id="loginOverlay">
         <div class="login-card">
             <h2>🏆 دخول المسابقة</h2>
-            <select id="loginUser">
+            <select id="loginUser" onchange="checkUserPinState()">
                 <option value="eyad">إياد (المشرف)</option>
                 <option value="mohammed">محمد</option>
                 <option value="saud">سعود</option>
             </select>
+            <p id="pinInstruction" style="font-size: 12px; color: #38bdf8; margin: 4px 0;"></p>
             <input type="password" id="loginPin" placeholder="أدخل الرمز السري (PIN)" maxlength="4">
-            <button onclick="login()">دخول</button>
-            <p id="loginError" style="color:#ef4444; font-size:12px; margin-top:8px; display:none;">الرمز السري غير صحيح!</p>
+            <button id="loginBtn" onclick="login()">دخول</button>
+            <p id="loginError" style="color:#ef4444; font-size:12px; margin-top:8px; display:none;"></p>
         </div>
     </div>
 
@@ -237,8 +238,9 @@
             <div class="card">
                 <h3>👤 الملف التعريفي</h3>
                 <p style="margin-bottom: 8px;"><b>الاسم:</b> <span id="profileName">-</span></p>
-                <p><b>الصلاحية:</b> <span id="profileRole">-</span></p>
-                <button onclick="logout()" style="margin-top:20px; background-color:#ef4444; color:white;">تسجيل الخروج</button>
+                <p style="margin-bottom: 8px;"><b>الصلاحية:</b> <span id="profileRole">-</span></p>
+                <button onclick="resetMyPin()" style="margin-top:10px; background-color:#334155; color:white;">إعادة تعيين الرمز السري</button>
+                <button onclick="logout()" style="margin-top:10px; background-color:#ef4444; color:white;">تسجيل الخروج</button>
             </div>
         </div>
 
@@ -279,13 +281,6 @@
     </nav>
 
     <script>
-        // الرموز السرية الحالية
-        const pins = {
-            eyad: "1234",
-            mohammed: "1111",
-            saud: "2222"
-        };
-
         const names = {
             eyad: "إياد",
             mohammed: "محمد",
@@ -294,31 +289,81 @@
 
         let currentUser = null;
 
-        function login() {
+        // التحقق مما إذا كان المستخدم يملك رمز سري سابق أم لا
+        function checkUserPinState() {
             const user = document.getElementById('loginUser').value;
-            const pin = document.getElementById('loginPin').value;
+            const savedPin = localStorage.getItem('pin_' + user);
+            const pinInstruction = document.getElementById('pinInstruction');
+            const loginBtn = document.getElementById('loginBtn');
+            const loginPinInput = document.getElementById('loginPin');
             const errorMsg = document.getElementById('loginError');
 
-            if (pins[user] === pin) {
-                currentUser = user;
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('userInfoHeader').innerText = `المستخدم: ${names[user]}`;
-                document.getElementById('profileName').innerText = names[user];
-                document.getElementById('profileRole').innerText = user === 'eyad' ? 'المشرف العام' : 'متسابق';
-                
-                // إظهار لوحة إدخال المباريات للمشرف فقط
-                document.getElementById('adminSection').style.display = (user === 'eyad') ? 'block' : 'none';
+            errorMsg.style.display = 'none';
+            loginPinInput.value = '';
 
-                errorMsg.style.display = 'none';
+            if (!savedPin) {
+                pinInstruction.innerText = 'أول دخول لك! أنشئ رمز سري جديد (4 أرقام)';
+                loginBtn.innerText = 'إنشاء الرمز والدخول';
             } else {
-                errorMsg.style.display = 'block';
+                pinInstruction.innerText = 'أدخل رمزك السري للدخول';
+                loginBtn.innerText = 'دخول';
             }
+        }
+
+        function login() {
+            const user = document.getElementById('loginUser').value;
+            const pin = document.getElementById('loginPin').value.trim();
+            const savedPin = localStorage.getItem('pin_' + user);
+            const errorMsg = document.getElementById('loginError');
+
+            if (!pin || pin.length < 4) {
+                errorMsg.innerText = 'يرجى إدخال رمز سري مكون من 4 أرقام!';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            // حالة إنشاء رمز سري لأول مرة
+            if (!savedPin) {
+                localStorage.setItem('pin_' + user, pin);
+                alert('تم إنشاء رمزك السري بنجاح!');
+                completeLogin(user);
+            } else {
+                // حالة الدخول برمز محدد سابقاً
+                if (savedPin === pin) {
+                    completeLogin(user);
+                } else {
+                    errorMsg.innerText = 'الرمز السري غير صحيح!';
+                    errorMsg.style.display = 'block';
+                }
+            }
+        }
+
+        function completeLogin(user) {
+            currentUser = user;
+            document.getElementById('loginOverlay').style.display = 'none';
+            document.getElementById('userInfoHeader').innerText = `المستخدم: ${names[user]}`;
+            document.getElementById('profileName').innerText = names[user];
+            document.getElementById('profileRole').innerText = user === 'eyad' ? 'المشرف العام' : 'متسابق';
+            
+            document.getElementById('adminSection').style.display = (user === 'eyad') ? 'block' : 'none';
+            document.getElementById('loginError').style.display = 'none';
         }
 
         function logout() {
             currentUser = null;
             document.getElementById('loginPin').value = '';
             document.getElementById('loginOverlay').style.display = 'flex';
+            checkUserPinState();
+        }
+
+        function resetMyPin() {
+            if (currentUser) {
+                if (confirm('هل أنت تأكد من رغبتك في إعادة تعيين رمزك السري؟')) {
+                    localStorage.removeItem('pin_' + currentUser);
+                    alert('تم مسح الرمز السري، يمكنك الآن إنشاء رمز جديد عند الدخول القادم.');
+                    logout();
+                }
+            }
         }
 
         function switchTab(tabId, element) {
@@ -358,6 +403,9 @@
             document.getElementById('team2').value = '';
             alert('تمت إضافة المباراة بنجاح!');
         }
+
+        // تشغيل التصفح والتأكد من حالة الرمز فور فتح الصفحة
+        checkUserPinState();
     </script>
 </body>
 </html>
