@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مسابقة التوقعات</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            margin: 0;
+            padding: 15px;
+            direction: rtl;
+        }
+        header {
+            background-color: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        .card {
+            background-color: #1e293b;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #334155;
+        }
+        select, input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 8px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: #fff;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #2563eb;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background-color: #334155;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🏆 مسابقة التوقعات الثلاثية</h1>
+        <p>إياد | محمد | سعود</p>
+    </header>
+
+    <!-- اختيار المستخدم -->
+    <div class="card">
+        <label for="userSelect"><b>👤 اختر حسابك للدخول:</b></label>
+        <select id="userSelect">
+            <option value="eyad">إياد (المشرف)</option>
+            <option value="mohammed">محمد</option>
+            <option value="saud">سعود</option>
+        </select>
+    </div>
+
+    <!-- جدول الترتيب -->
+    <div class="card">
+        <h2>📊 جدول الترتيب</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>الترتيب</th>
+                    <th>المتسابق</th>
+                    <th>النقاط</th>
+                </tr>
+            </thead>
+            <tbody id="leaderboard">
+                <tr><td>1</td><td>إياد 👑</td><td>0</td></tr>
+                <tr><td>2</td><td>محمد ⚽</td><td>0</td></tr>
+                <tr><td>3</td><td>سعود ⚽</td><td>0</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- قائمة المباريات -->
+    <div class="card">
+        <h2>⚽ المباريات والتوقعات</h2>
+        <div id="matchesContainer">
+            <p style="text-align: center; color: #94a3b8;">لا توجد مباريات مضافة حالياً.</p>
+        </div>
+    </div>
+
+    <!-- لوحة تحكم المشرف (إياد) -->
+    <div class="card" id="adminPanel">
+        <h2>⚙️ لوحة تحكم المشرف (إياد)</h2>
+        <input type="text" id="team1" placeholder="الفريق الأول (مثلاً: الهلال)">
+        <input type="text" id="team2" placeholder="الفريق الثاني (مثلاً: النصر)">
+        <button onclick="addMatch()">إضافة مباراة جديدة</button>
+    </div>
+
+    <script>
+        const userSelect = document.getElementById('userSelect');
+        const adminPanel = document.getElementById('adminPanel');
+
+        // إخفاء أو إظهار لوحة المشرف بناءً على الاختيار
+        userSelect.addEventListener('change', function() {
+            if (this.value === 'eyad') {
+                adminPanel.style.display = 'block';
+            } else {
+                adminPanel.style.display = 'none';
+            }
+        });
+
+        // إضافة مباراة جديدة
+        function addMatch() {
+            const t1 = document.getElementById('team1').value;
+            const t2 = document.getElementById('team2').value;
+            
+            if (!t1 || !t2) {
+                alert('الرجاء إدخال اسم الفريقين');
+                return;
+            }
+
+            const container = document.getElementById('matchesContainer');
+            if (container.innerHTML.includes('لا توجد مباريات')) {
+                container.innerHTML = '';
+            }
+
+            container.innerHTML += `
+                <div style="background:#0f172a; padding:15px; margin:10px 0; border-radius:8px; border:1px solid #334155;">
+                    <h3 style="margin:0 0 10px 0; text-align:center;">${t1} VS ${t2}</h3>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" placeholder="اهداف ${t1}">
+                        <input type="number" placeholder="اهداف ${t2}">
+                    </div>
+                    <button style="margin-top:8px;">حفظ التوقع</button>
+                </div>
+            `;
+
+            document.getElementById('team1').value = '';
+            document.getElementById('team2').value = '';
+        }
+    </script>
+</body>
+</html>
