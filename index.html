@@ -575,7 +575,7 @@
                 <div class="user-select-box" id="userBox_eyad" onclick="selectUserCard('eyad')">
                     <div style="font-size:22px;">🇸🇦</div>
                     <span>إياد</span>
-                    <div class="role-badge">مشرف المسابقة</div>
+                    <div class="role-badge">متسابق</div>
                 </div>
                 <div class="user-select-box" id="userBox_mohammed" onclick="selectUserCard('mohammed')">
                     <div style="font-size:22px;">🇸🇦</div>
@@ -860,11 +860,13 @@
         function completeLogin(user) {
             currentUser = user;
             localStorage.setItem('bound_device_user', user);
+            localStorage.setItem('logged_in_user', user); // حفظ الجلسة للتذكر التلقائي عند فتح الموقع
 
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('userInfoHeader').innerText = `المستخدم: ${names[user]}`;
             document.getElementById('profileName').innerText = names[user];
             
+            // تظل لوحة التحكم وإدارة المسابقة متاحة لحساب إياد فقط برمجياً
             document.getElementById('adminSection').style.display = (user === 'eyad') ? 'block' : 'none';
 
             listenToMatches();
@@ -876,6 +878,7 @@
 
         function logout() {
             currentUser = null;
+            localStorage.removeItem('logged_in_user'); // مسح التذكر التلقائي عند تسجيل الخروج الصريح
             document.getElementById('loginOverlay').style.display = 'flex';
             checkUserPinState();
         }
@@ -1382,8 +1385,16 @@
             animationFrameId = requestAnimationFrame(() => animateCanvas(theme));
         }
 
-        checkUserPinState();
-        initCanvasParticles('theme-gold');
+        // التحقق التلقائي عند فتح الرابط للتذكر وإدخالك فوراً
+        window.onload = function() {
+            const savedUser = localStorage.getItem('logged_in_user');
+            if (savedUser && names[savedUser]) {
+                completeLogin(savedUser);
+            } else {
+                checkUserPinState();
+            }
+            initCanvasParticles('theme-gold');
+        };
     </script>
 </body>
 </html>
