@@ -161,7 +161,7 @@
         select, input, button {
             width: 100%;
             padding: 10px;
-            margin: 6px 0;
+            margin: 4px 0;
             border-radius: 10px;
             border: 1px solid var(--border-color);
             background-color: rgba(0, 0, 0, 0.3);
@@ -346,6 +346,27 @@
         .group-table tr.qualified {
             border-right: 4px solid #10b981;
             background: rgba(16, 185, 129, 0.08);
+        }
+
+        /* تنسيق خانات الإدخال مع العناوين */
+        .field-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .field-box label {
+            font-size: 11px;
+            color: var(--primary-accent);
+            font-weight: bold;
+            margin-bottom: 2px;
+            text-align: center;
+        }
+
+        .field-box input {
+            text-align: center;
+            padding: 8px 4px;
+            font-size: 13px;
         }
 
         /* شجرة الأدوار الإقصائية (Knockout Bracket) */
@@ -598,7 +619,7 @@
             </div>
         </div>
 
-        <!-- 3. صفحة البطولة الجدية -->
+        <!-- 3. صفحة البطولة -->
         <div id="tournamentTab" class="tab-content">
             <!-- المجموعة أ -->
             <div class="card">
@@ -620,7 +641,7 @@
                         </tr>
                     </thead>
                     <tbody id="groupATableBody">
-                        <tr><td colspan="8" style="color:var(--text-sub);">لا توجد بيانات للمجموعة أ</td></tr>
+                        <tr><td colspan="8" style="color:var(--text-sub);">لا توجد بيانات مسجلة.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -645,7 +666,7 @@
                         </tr>
                     </thead>
                     <tbody id="groupBTableBody">
-                        <tr><td colspan="8" style="color:var(--text-sub);">لا توجد بيانات للمجموعة ب</td></tr>
+                        <tr><td colspan="8" style="color:var(--text-sub);">لا توجد بيانات مسجلة.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -758,7 +779,7 @@
         </div>
     </div>
 
-    <!-- النوافذ المنبثقة (Modals) -->
+    <!-- النوافذ المنبثقة (Modals) مع العناوين الواضحة فوق الخانات -->
     <div id="editGroupModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('editGroupModal')">&times;</span>
@@ -773,38 +794,74 @@
             <span class="close-modal" onclick="closeModal('editKnockoutModal')">&times;</span>
             <h3 style="color:var(--primary-accent); margin-bottom:12px;">تعديل الأدوار الإقصائية</h3>
             
-            <p style="font-size:12px; color:var(--primary-accent); font-weight:bold;">نصف النهائي 1:</p>
-            <div style="display:flex; gap:4px;">
-                <input type="text" id="k_sf1_t1" placeholder="فريق 1">
-                <input type="number" id="k_sf1_s1" placeholder="أهداف">
+            <p style="font-size:13px; color:var(--primary-accent); font-weight:bold; margin-top:6px;">⚽ نصف النهائي 1:</p>
+            <div style="display:flex; gap:6px;">
+                <div style="flex:2;">
+                    <label style="font-size:10px; color:var(--text-sub);">المنتخب الأول</label>
+                    <input type="text" id="k_sf1_t1" placeholder="اسم المنتخب">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
+                    <input type="number" id="k_sf1_s1" placeholder="0">
+                </div>
             </div>
-            <div style="display:flex; gap:4px;">
-                <input type="text" id="k_sf1_t2" placeholder="فريق 2">
-                <input type="number" id="k_sf1_s2" placeholder="أهداف">
-            </div>
-
-            <p style="font-size:12px; color:var(--primary-accent); font-weight:bold; margin-top:8px;">نصف النهائي 2:</p>
-            <div style="display:flex; gap:4px;">
-                <input type="text" id="k_sf2_t1" placeholder="فريق 1">
-                <input type="number" id="k_sf2_s1" placeholder="أهداف">
-            </div>
-            <div style="display:flex; gap:4px;">
-                <input type="text" id="k_sf2_t2" placeholder="فريق 2">
-                <input type="number" id="k_sf2_s2" placeholder="أهداف">
-            </div>
-
-            <p style="font-size:12px; color:#facc15; font-weight:bold; margin-top:8px;">🏆 النهائي:</p>
-            <div style="display:flex; gap:4px;">
-                <input type="text" id="k_fn_t1" placeholder="فريق 1">
-                <input type="number" id="k_fn_s1" placeholder="أهداف">
-            </div>
-            <div style="display:flex; gap:4px;">
-                <input type="text" id="k_fn_t2" placeholder="فريق 2">
-                <input type="number" id="k_fn_s2" placeholder="أهداف">
+            <div style="display:flex; gap:6px;">
+                <div style="flex:2;">
+                    <label style="font-size:10px; color:var(--text-sub);">المنتخب الثاني</label>
+                    <input type="text" id="k_sf1_t2" placeholder="اسم المنتخب">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
+                    <input type="number" id="k_sf1_s2" placeholder="0">
+                </div>
             </div>
 
-            <p style="font-size:12px; color:#10b981; font-weight:bold; margin-top:8px;">👑 اسم البطل النهائي:</p>
-            <input type="text" id="k_champion" placeholder="اسم المنتخب الفائز">
+            <p style="font-size:13px; color:var(--primary-accent); font-weight:bold; margin-top:10px;">⚽ نصف النهائي 2:</p>
+            <div style="display:flex; gap:6px;">
+                <div style="flex:2;">
+                    <label style="font-size:10px; color:var(--text-sub);">المنتخب الأول</label>
+                    <input type="text" id="k_sf2_t1" placeholder="اسم المنتخب">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
+                    <input type="number" id="k_sf2_s1" placeholder="0">
+                </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <div style="flex:2;">
+                    <label style="font-size:10px; color:var(--text-sub);">المنتخب الثاني</label>
+                    <input type="text" id="k_sf2_t2" placeholder="اسم المنتخب">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
+                    <input type="number" id="k_sf2_s2" placeholder="0">
+                </div>
+            </div>
+
+            <p style="font-size:13px; color:#facc15; font-weight:bold; margin-top:10px;">🏆 مباراة النهائي:</p>
+            <div style="display:flex; gap:6px;">
+                <div style="flex:2;">
+                    <label style="font-size:10px; color:var(--text-sub);">المتأهل الأول</label>
+                    <input type="text" id="k_fn_t1" placeholder="اسم المنتخب">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
+                    <input type="number" id="k_fn_s1" placeholder="0">
+                </div>
+            </div>
+            <div style="display:flex; gap:6px;">
+                <div style="flex:2;">
+                    <label style="font-size:10px; color:var(--text-sub);">المتأهل الثاني</label>
+                    <input type="text" id="k_fn_t2" placeholder="اسم المنتخب">
+                </div>
+                <div style="flex:1;">
+                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
+                    <input type="number" id="k_fn_s2" placeholder="0">
+                </div>
+            </div>
+
+            <p style="font-size:13px; color:#10b981; font-weight:bold; margin-top:10px;">👑 اسم بطل الكأس النهائي:</p>
+            <input type="text" id="k_champion" placeholder="أدخل اسم المنتخب الفائز">
 
             <button onclick="saveKnockoutToCloud()" style="margin-top:12px;">حفظ الشجرة والإقصائيات 💾</button>
         </div>
@@ -846,7 +903,7 @@
         </div>
     </div>
 
-    <!-- الشريط السفلي المحسّن -->
+    <!-- الشريط السفلي -->
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('matchesTab', this)">
             <span class="nav-icon">⚽</span>
@@ -1021,7 +1078,7 @@
             initCanvasParticles(themeClass);
         }
 
-        // ---------- إدارة البطولة السحابية ----------
+        // ---------- إدارة البطولة السحابية والعناوين المكتوبة فوق الخانات ----------
         function listenToTournamentData() {
             db.ref('tournament').on('value', (snap) => {
                 const data = snap.val() || {};
@@ -1043,7 +1100,7 @@
             let sorted = [...groupData].sort((a,b) => (b.pts || 0) - (a.pts || 0) || ((b.gf||0)-(b.ga||0)) - ((a.gf||0)-(a.ga||0)));
 
             sorted.forEach((team, index) => {
-                const isQualified = index < 2; // أول واثنين يتأهلون (خط أخضر)
+                const isQualified = index < 2;
                 tbody.innerHTML += `
                     <tr class="${isQualified ? 'qualified' : ''}">
                         <td style="font-weight:bold; text-align:right;">${team.name || '-'} ${isQualified ? '🟢' : ''}</td>
@@ -1076,18 +1133,44 @@
                 for (let i = 0; i < 4; i++) {
                     const item = list[i] || { name: '', p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0 };
                     container.innerHTML += `
-                        <div style="border: 1px solid var(--border-color); padding: 8px; border-radius: 8px; margin-bottom: 8px; background: rgba(0,0,0,0.2);">
-                            <input type="text" id="g_name_${i}" value="${item.name||''}" placeholder="اسم المنتخب ${i+1}">
-                            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
-                                <input type="number" id="g_p_${i}" value="${item.p||0}" placeholder="لعب">
-                                <input type="number" id="g_w_${i}" value="${item.w||0}" placeholder="فاز">
-                                <input type="number" id="g_d_${i}" value="${item.d||0}" placeholder="تعادل">
-                                <input type="number" id="g_l_${i}" value="${item.l||0}" placeholder="خسر">
+                        <div style="border: 1px solid var(--border-color); padding: 10px; border-radius: 10px; margin-bottom: 10px; background: rgba(0,0,0,0.3);">
+                            <div style="margin-bottom: 8px;">
+                                <label style="font-size:12px; color:var(--primary-accent); font-weight:bold; display:block; margin-bottom:2px;">🏆 اسم المنتخب ${i+1}:</label>
+                                <input type="text" id="g_name_${i}" value="${item.name||''}" placeholder="أدخل اسم المنتخب هنا">
                             </div>
-                            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 4px;">
-                                <input type="number" id="g_gf_${i}" value="${item.gf||0}" placeholder="له">
-                                <input type="number" id="g_ga_${i}" value="${item.ga||0}" placeholder="عليه">
-                                <input type="number" id="g_pts_${i}" value="${item.pts||0}" placeholder="النقاط" style="border-color:var(--primary-accent);">
+                            
+                            <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px;">
+                                <div class="field-box">
+                                    <label>لعب</label>
+                                    <input type="number" id="g_p_${i}" value="${item.p ?? 0}">
+                                </div>
+                                <div class="field-box">
+                                    <label>فاز</label>
+                                    <input type="number" id="g_w_${i}" value="${item.w ?? 0}">
+                                </div>
+                                <div class="field-box">
+                                    <label>تعادل</label>
+                                    <input type="number" id="g_d_${i}" value="${item.d ?? 0}">
+                                </div>
+                                <div class="field-box">
+                                    <label>خسر</label>
+                                    <input type="number" id="g_l_${i}" value="${item.l ?? 0}">
+                                </div>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+                                <div class="field-box">
+                                    <label>له (أهداف)</label>
+                                    <input type="number" id="g_gf_${i}" value="${item.gf ?? 0}">
+                                </div>
+                                <div class="field-box">
+                                    <label>عليه (أهداف)</label>
+                                    <input type="number" id="g_ga_${i}" value="${item.ga ?? 0}">
+                                </div>
+                                <div class="field-box">
+                                    <label style="color:#facc15;">النقاط</label>
+                                    <input type="number" id="g_pts_${i}" value="${item.pts ?? 0}" style="border-color:#facc15; font-weight:bold;">
+                                </div>
                             </div>
                         </div>
                     `;
