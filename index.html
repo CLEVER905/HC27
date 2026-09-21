@@ -458,45 +458,51 @@
             margin-top: 4px;
         }
 
+        /* تنسيقات جدول الترتيب المعدلة والمكبرة */
         table {
             width: 100%;
             border-collapse: collapse;
         }
 
         th, td {
-            padding: 10px 5px;
+            padding: 12px 6px;
             text-align: center;
             border-bottom: 1px solid var(--border-color);
             vertical-align: middle;
+            font-size: 15px;
         }
 
         th {
             background-color: rgba(0,0,0,0.3);
             color: var(--primary-accent);
-            font-size: 13px;
+            font-size: 14px;
+            font-weight: bold;
         }
 
         .user-cell {
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
+            gap: 10px;
+            width: 110px;
+            margin: 0 auto;
+            text-align: right;
         }
 
         .user-table-avatar {
-            width: 30px;
-            height: 30px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1.5px solid var(--primary-accent);
+            border: 2px solid var(--primary-accent);
             background-color: #0f172a;
+            flex-shrink: 0;
         }
 
         .pred-badge {
             display: inline-block;
-            padding: 3px 6px;
+            padding: 4px 8px;
             border-radius: 8px;
-            font-size: 11px;
+            font-size: 13px;
             font-weight: bold;
         }
 
@@ -615,10 +621,10 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th style="width: 45px;">#</th>
                             <th>المتسابق</th>
                             <th>توقع المباشر</th>
-                            <th>النقاط</th>
+                            <th style="width: 55px;">النقاط</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboard"></tbody>
@@ -970,7 +976,6 @@
         let currentLeader = null;
         let activeEditingGroup = 'A';
 
-        // دالة تنسيق التاريخ بجمع اسم اليوم مع التاريخ
         function formatArabicDate(dateStr) {
             if (!dateStr) return '';
             const parts = dateStr.split('-');
@@ -984,7 +989,6 @@
             return `${dayName} (${day}/${parts[1]}/${year})`;
         }
 
-        // دالة تحويل الوقت لنظام 12 ساعة مع (ص / م)
         function format12HourTime(timeStr) {
             if (!timeStr) return '';
             const parts = timeStr.split(':');
@@ -1411,7 +1415,7 @@
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ---------- إدارة المباريات والتوقعات مضافة بالوقت والتاريخ المعدلين ----------
+        // ---------- إدارة المباريات والتوقعات ----------
         function addMatchToCloud() {
             const t1 = document.getElementById('team1').value.trim();
             const t2 = document.getElementById('team2').value.trim();
@@ -1516,7 +1520,6 @@
                     scoreHeaderHtml = `<div style="text-align:center; font-weight:bold; color:#cbd5e1; margin: 4px 0;">النتيجة النهائية: ${data.score1 ?? 0} - ${data.score2 ?? 0}</div>`;
                 }
 
-                // تنسيق التاريخ والوقت (اليوم + التاريخ + الوقت 12 ساعة)
                 let timeDisplayHtml = '';
                 if (data.matchDate || data.matchTime) {
                     const formattedDate = formatArabicDate(data.matchDate);
@@ -1614,7 +1617,7 @@
                 }
 
                 const uData = allUsersGlobalData[uKey] || {};
-                return { key: uKey, name: names[uKey], avatar: uData.avatar || 'https://via.placeholder.com/32', points: computedScores[uKey] || 0, livePredStr: livePredStr, predClass: predClass };
+                return { key: uKey, name: names[uKey], avatar: uData.avatar || 'https://via.placeholder.com/38', points: computedScores[uKey] || 0, livePredStr: livePredStr, predClass: predClass };
             });
 
             usersList.sort((a, b) => b.points - a.points);
@@ -1630,9 +1633,10 @@
             }
 
             usersList.forEach((user, index) => {
+                const rankDisplay = index === 0 ? `<span style="color:#facc15; font-weight:bold;">1 🏆</span>` : `<b>${index + 1}</b>`;
                 leaderboardBody.innerHTML += `
                     <tr>
-                        <td>${index + 1} ${index === 0 ? '🏆' : ''}</td>
+                        <td style="font-weight:bold;">${rankDisplay}</td>
                         <td>
                             <div class="user-cell">
                                 <img src="${user.avatar}" class="user-table-avatar" alt="${user.name}">
@@ -1640,7 +1644,7 @@
                             </div>
                         </td>
                         <td><span class="pred-badge ${user.predClass}">${user.livePredStr}</span></td>
-                        <td><b>${user.points}</b></td>
+                        <td style="font-size:16px;"><b>${user.points}</b></td>
                     </tr>
                 `;
             });
