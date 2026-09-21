@@ -587,9 +587,23 @@
             font-weight: bold;
         }
 
-        .pred-wrong { background-color: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
-        .pred-correct { background-color: rgba(34, 197, 94, 0.2); color: #22c55e; border: 1px solid #22c55e; }
-        .pred-exact { background-color: rgba(234, 179, 8, 0.2); color: #eab308; border: 1px solid #eab308; box-shadow: 0 0 8px rgba(234, 179, 8, 0.4); }
+        /* تعديل ألوان الشارات حسب الطلب */
+        .pred-wrong { 
+            background-color: rgba(239, 68, 68, 0.2); 
+            color: #ef4444; 
+            border: 1px solid #ef4444; 
+        }
+        .pred-correct { 
+            background-color: rgba(245, 158, 11, 0.2); 
+            color: #f59e0b; 
+            border: 1px solid #f59e0b; 
+        }
+        .pred-exact { 
+            background-color: rgba(34, 197, 94, 0.2); 
+            color: #22c55e; 
+            border: 1px solid #22c55e; 
+            box-shadow: 0 0 8px rgba(34, 197, 94, 0.4); 
+        }
 
         .profile-header-card { padding: 0; overflow: hidden; position: relative; }
         .cover-photo { width: 100%; height: 120px; background-color: #1e293b; background-size: cover; background-position: center; }
@@ -701,7 +715,7 @@
                             <th style="width: 45px;">#</th>
                             <th>المتسابق</th>
                             <th>توقع المباشر</th>
-                            <th style="width: 55px;">النقاط</th>
+                            <th style="width: 85px;">النقاط</th>
                         </tr>
                     </thead>
                     <tbody id="leaderboard"></tbody>
@@ -1005,7 +1019,7 @@
                 </div>
                 <div style="flex:1;">
                     <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
-                    <input type="number" id="k_sf2_s1" placeholder="0">
+                    <input type="number" id="k_sf2_s2" placeholder="0">
                 </div>
             </div>
             <div style="display:flex; gap:6px;">
@@ -1686,7 +1700,6 @@
                 return;
             }
 
-            // فحص البطاقات المستخدمة للمستخدم الحالي لمنع التكرار
             let usedDouble = false, usedBlock = false, usedGoals = false;
             let usedDoubleMatch = '', usedBlockMatch = '', usedGoalsMatch = '';
 
@@ -1717,7 +1730,6 @@
                 let scoreHeaderHtml = '';
                 let blockedBannerHtml = '';
 
-                // فحص المنع المطبق من شخص آخر في هذه المباراة
                 let blockedByWhom = '';
                 ['eyad', 'mohammed', 'saud'].forEach(u => {
                     const p = globalPredictions[matchId]?.[u];
@@ -1754,7 +1766,6 @@
                     `;
                 }
 
-                // تجهيز قائمة البطاقات المتاحة للمباراة
                 let cardSelectHtml = '';
                 if (status === 'upcoming') {
                     const curCard = myPred.cardUsed || 'none';
@@ -1864,7 +1875,6 @@
 
             const usersList = ['eyad', 'mohammed', 'saud'];
 
-            // تحديد المباريات والمستخدمين الممنوعين بواسطة بطاقة المنع
             let blockedMap = {};
             Object.keys(globalMatches).forEach(mId => {
                 blockedMap[mId] = [];
@@ -1883,7 +1893,6 @@
                     const a1 = parseInt(match.score1), a2 = parseInt(match.score2);
                     const stage = match.stage || '';
 
-                    // نقاط المرحلة الرسمية (تحديث: دور المجموعات التوقع الدقيق = 2 نقاط)
                     let stdExact = 2, stdCorrect = 1;
                     if (stage.includes('نصف النهائي')) { stdExact = 4; stdCorrect = 2; }
                     else if (stage.includes('النهائي')) { stdExact = 5; stdCorrect = 3; }
@@ -1894,7 +1903,6 @@
                             return;
                         }
 
-                        // إذا تم استخدام بطاقة المنع عليه
                         if (blockedMap[mId].includes(u)) {
                             stats[u].wrong++;
                             return;
@@ -1909,10 +1917,10 @@
                         if (isExact || isCorrect) {
                             let pts = 0;
                             if (card === 'goals') {
-                                pts = a1 + a2; // كل هدف بنقطة
+                                pts = a1 + a2;
                             } else {
                                 pts = isExact ? stdExact : stdCorrect;
-                                if (card === 'double') pts *= 2; // تدبيل النقاط
+                                if (card === 'double') pts *= 2;
                             }
 
                             stats[u].points += pts;
@@ -1925,15 +1933,13 @@
                 }
             });
 
-            // 2. حساب التوقعات الكبرى (البطل والنهائي)
+            // 2. حساب التوقعات الكبرى
             const kData = tournamentKnockoutData || {};
             usersList.forEach(u => {
                 const grand = grandPredictionsData[u] || {};
-                // توقع البطل (3 نقاط)
                 if (kData.champion && grand.champion && kData.champion.trim().toLowerCase() === grand.champion.trim().toLowerCase()) {
                     stats[u].points += 3;
                 }
-                // توقع طرفي النهائي (3 نقاط)
                 if (kData.fn_t1 && kData.fn_t2 && grand.finalist1 && grand.finalist2) {
                     const act1 = kData.fn_t1.trim().toLowerCase();
                     const act2 = kData.fn_t2.trim().toLowerCase();
@@ -1955,7 +1961,73 @@
             if (!leaderboardBody) return;
             leaderboardBody.innerHTML = '';
 
-            let usersList = ['eyad', 'mohammed', 'saud'].map(uKey => {
+            const usersListKeys = ['eyad', 'mohammed', 'saud'];
+
+            // حساب نقاط وحالة التوقع المباشر حال وجود مباراة جارية الآن
+            let liveStatsMap = {
+                eyad: { pts: 0, status: 'wrong' },
+                mohammed: { pts: 0, status: 'wrong' },
+                saud: { pts: 0, status: 'wrong' }
+            };
+
+            if (activeLiveMatchData && activeLiveMatchData.isLive) {
+                const liveMatchObj = globalMatches[activeLiveMatchData.matchId];
+                if (liveMatchObj) {
+                    const l1 = parseInt(activeLiveMatchData.score1) || 0;
+                    const l2 = parseInt(activeLiveMatchData.score2) || 0;
+                    const stage = liveMatchObj.stage || '';
+
+                    let stdExact = 2, stdCorrect = 1;
+                    if (stage.includes('نصف النهائي')) { stdExact = 4; stdCorrect = 2; }
+                    else if (stage.includes('النهائي')) { stdExact = 5; stdCorrect = 3; }
+
+                    let liveBlockedUsers = [];
+                    usersListKeys.forEach(u => {
+                        const p = globalPredictions[activeLiveMatchData.matchId]?.[u];
+                        if (p && p.cardUsed === 'block' && p.targetUser) {
+                            liveBlockedUsers.push(p.targetUser);
+                        }
+                    });
+
+                    usersListKeys.forEach(u => {
+                        const pred = globalPredictions[activeLiveMatchData.matchId]?.[u];
+                        if (!pred || pred.score1 === undefined || pred.score2 === undefined || pred.score1 === '' || pred.score2 === '') {
+                            liveStatsMap[u] = { pts: 0, status: 'wrong' };
+                            return;
+                        }
+
+                        if (liveBlockedUsers.includes(u)) {
+                            liveStatsMap[u] = { pts: 0, status: 'wrong' };
+                            return;
+                        }
+
+                        const p1 = parseInt(pred.score1), p2 = parseInt(pred.score2);
+                        const card = pred.cardUsed || 'none';
+
+                        const isExact = (p1 === l1 && p2 === l2);
+                        const isCorrect = !isExact && ((p1 > p2 && l1 > l2) || (p1 < p2 && l1 < l2) || (p1 === p2 && l1 === l2));
+
+                        if (isExact || isCorrect) {
+                            let pts = 0;
+                            if (card === 'goals') {
+                                pts = l1 + l2;
+                            } else {
+                                pts = isExact ? stdExact : stdCorrect;
+                                if (card === 'double') pts *= 2;
+                            }
+
+                            liveStatsMap[u] = {
+                                pts: pts,
+                                status: isExact ? 'exact' : 'correct'
+                            };
+                        } else {
+                            liveStatsMap[u] = { pts: 0, status: 'wrong' };
+                        }
+                    });
+                }
+            }
+
+            let usersList = usersListKeys.map(uKey => {
                 let livePredStr = '-', predClass = '';
                 if (activeLiveMatchData && globalPredictions[activeLiveMatchData.matchId] && globalPredictions[activeLiveMatchData.matchId][uKey]) {
                     const p = globalPredictions[activeLiveMatchData.matchId][uKey];
@@ -1967,11 +2039,17 @@
                 }
 
                 const uData = allUsersGlobalData[uKey] || {};
+                const liveInfo = liveStatsMap[uKey] || { pts: 0, status: 'wrong' };
+                const totalWithLive = computedStats[uKey].points + (activeLiveMatchData?.isLive ? liveInfo.pts : 0);
+
                 return {
                     key: uKey,
                     name: names[uKey],
                     avatar: uData.avatar || 'https://via.placeholder.com/38',
-                    points: computedStats[uKey].points,
+                    basePoints: computedStats[uKey].points,
+                    totalWithLive: totalWithLive,
+                    livePts: liveInfo.pts,
+                    liveStatus: liveInfo.status,
                     exact: computedStats[uKey].exact,
                     correct: computedStats[uKey].correct,
                     wrong: computedStats[uKey].wrong,
@@ -1980,7 +2058,7 @@
                 };
             });
 
-            usersList.sort((a, b) => b.points - a.points);
+            usersList.sort((a, b) => b.totalWithLive - a.totalWithLive);
             currentLeader = usersList[0].key;
 
             const leaderOpt = document.getElementById('leaderThemeOption');
@@ -1996,6 +2074,17 @@
 
             usersList.forEach((user, index) => {
                 const rankDisplay = index === 0 ? `<span style="color:#facc15; font-weight:bold;">1 🏆</span>` : `<b>${index + 1}</b>`;
+
+                // تجهيز مؤشر (+X) الملون للمباشر
+                let livePtsBadgeHtml = '';
+                if (activeLiveMatchData && activeLiveMatchData.isLive) {
+                    let badgeColor = '#ef4444'; // أحمر للخطأ
+                    if (user.liveStatus === 'exact') badgeColor = '#22c55e'; // أخضر للدقيق
+                    if (user.liveStatus === 'correct') badgeColor = '#f59e0b'; // برتقالي للصحيح
+
+                    livePtsBadgeHtml = `<span style="color:${badgeColor}; font-size:13px; font-weight:bold; margin-right:3px;">(+${user.livePts})</span>`;
+                }
+
                 leaderboardBody.innerHTML += `
                     <tr>
                         <td style="font-weight:bold;">${rankDisplay}</td>
@@ -2006,20 +2095,21 @@
                             </div>
                         </td>
                         <td><span class="pred-badge ${user.predClass}">${user.livePredStr}</span></td>
-                        <td style="font-size:16px;"><b>${user.points}</b></td>
+                        <td style="font-size:15px; white-space:nowrap;">
+                            <b>${user.totalWithLive}</b> ${livePtsBadgeHtml}
+                        </td>
                     </tr>
                 `;
 
                 if (user.key === currentUser) {
                     document.getElementById('st_rank').innerText = `#${index + 1}`;
-                    document.getElementById('st_points').innerText = user.points;
+                    document.getElementById('st_points').innerText = user.totalWithLive;
                     document.getElementById('st_exact').innerText = user.exact;
                     document.getElementById('st_correct').innerText = user.correct;
                     document.getElementById('st_wrong').innerText = user.wrong;
                 }
             });
 
-            // التحديث المرئي لحالة بطاقات المستخدم الحالية
             let dUsed = false, bUsed = false, gUsed = false;
             Object.keys(globalPredictions).forEach(mId => {
                 const p = globalPredictions[mId][currentUser];
