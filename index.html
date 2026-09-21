@@ -289,7 +289,14 @@
             padding: 3px 10px;
             border-radius: 8px;
             display: inline-block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+        }
+
+        .match-time-badge {
+            font-size: 12px;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            font-weight: 500;
         }
 
         .tag-upcoming {
@@ -736,6 +743,17 @@
                 <input type="text" id="team1" placeholder="الفريق الأول">
                 <input type="text" id="team2" placeholder="الفريق الثاني">
                 
+                <div style="display:flex; gap:8px;">
+                    <div style="flex:1;">
+                        <label style="font-size:10px; color:var(--text-sub);">تاريخ المباراة</label>
+                        <input type="date" id="matchDate">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:10px; color:var(--text-sub);">وقت المباراة</label>
+                        <input type="time" id="matchTime">
+                    </div>
+                </div>
+
                 <select id="matchStage">
                     <option value="دوري المجموعات - المجموعة أ">دوري المجموعات - المجموعة أ</option>
                     <option value="دوري المجموعات - المجموعة ب">دوري المجموعات - المجموعة ب</option>
@@ -779,7 +797,7 @@
         </div>
     </div>
 
-    <!-- النوافذ المنبثقة (Modals) مع العناوين الواضحة فوق الخانات -->
+    <!-- النوافذ المنبثقة (Modals) -->
     <div id="editGroupModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('editGroupModal')">&times;</span>
@@ -1366,18 +1384,32 @@
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ---------- إدارة المباريات والتوقعات ----------
+        // ---------- إدارة المباريات والتوقعات مضافة بالوقت والتاريخ ----------
         function addMatchToCloud() {
             const t1 = document.getElementById('team1').value.trim();
             const t2 = document.getElementById('team2').value.trim();
+            const mDate = document.getElementById('matchDate').value;
+            const mTime = document.getElementById('matchTime').value;
             const stage = document.getElementById('matchStage').value;
+
             if (!t1 || !t2) return alert('أدخل أسماء الفريقين');
 
             db.ref('matches').push({
-                team1: t1, team2: t2, stage: stage, status: 'upcoming', score1: 0, score2: 0, createdAt: Date.now()
+                team1: t1,
+                team2: t2,
+                matchDate: mDate,
+                matchTime: mTime,
+                stage: stage,
+                status: 'upcoming',
+                score1: 0,
+                score2: 0,
+                createdAt: Date.now()
             });
 
-            document.getElementById('team1').value = ''; document.getElementById('team2').value = '';
+            document.getElementById('team1').value = '';
+            document.getElementById('team2').value = '';
+            document.getElementById('matchDate').value = '';
+            document.getElementById('matchTime').value = '';
             alert('تم إضافة المباراة بنجاح!');
         }
 
@@ -1457,10 +1489,23 @@
                     scoreHeaderHtml = `<div style="text-align:center; font-weight:bold; color:#cbd5e1; margin: 4px 0;">النتيجة النهائية: ${data.score1 ?? 0} - ${data.score2 ?? 0}</div>`;
                 }
 
+                // تجهيز العرض للتاريخ والوقت
+                let timeDisplayHtml = '';
+                if (data.matchDate || data.matchTime) {
+                    timeDisplayHtml = `
+                        <div class="match-time-badge">
+                            ${data.matchDate ? '📅 ' + data.matchDate : ''} ${data.matchTime ? ' | ⏰ ' + data.matchTime : ''}
+                        </div>
+                    `;
+                }
+
                 list.innerHTML += `
                     <div class="${cardClass}">
                         <div class="match-header">${tagHtml}${deleteBtnHtml}</div>
-                        <div style="text-align:center;"><span class="stage-badge">📌 ${stageText}</span></div>
+                        <div style="text-align:center;">
+                            <span class="stage-badge">📌 ${stageText}</span>
+                            ${timeDisplayHtml}
+                        </div>
                         <h4 style="text-align:center; color:var(--primary-accent); margin-bottom:4px; font-size:16px;">${data.team1} VS ${data.team2}</h4>
                         ${scoreHeaderHtml}
                         <div style="display:flex; gap:8px; margin-top:8px;">
