@@ -1290,7 +1290,7 @@
         let isGrandLocked = false;
         let currentLeader = null;
         let activeEditingGroup = 'A';
-        let editModeMatchesMap = {}; // تخزين حالة التعديل لكل مباراة
+        let editModeMatchesMap = {};
         let teamsListGlobal = ["السعودية", "عمان", "العراق", "الكويت", "قطر", "الإمارات", "البحرين", "اليمن"];
         let adminAdjustmentsGlobal = {};
 
@@ -2010,7 +2010,7 @@
             let usedDoubleMatch = '', usedBlockMatch = '', usedGoalsMatch = '';
 
             Object.keys(globalPredictions).forEach(mId => {
-                const p = globalPredictions[mId][currentUser];
+                const p = globalPredictions[mId]?.[currentUser];
                 if (p && p.cardUsed) {
                     if (p.cardUsed === 'double') { usedDouble = true; usedDoubleMatch = mId; }
                     if (p.cardUsed === 'block') { usedBlock = true; usedBlockMatch = mId; }
@@ -2055,7 +2055,6 @@
                     buttonHtml = `<button disabled style="background:#065f46; color:#a7f3d0; margin-top:8px; font-size:13px;">المباراة جارية - التوقعات مغلقة 🔒</button>`;
                     scoreHeaderHtml = `<div style="text-align:center; font-weight:bold; color:#10b981; margin: 4px 0;">النتيجة الحالية: ${data.score1 ?? 0} - ${data.score2 ?? 0}</div>`;
 
-                    // حساب النقاط المباشرة حالياً
                     const livePts = calculateSingleMatchPoints(matchId, currentUser, data.score1 ?? 0, data.score2 ?? 0);
                     pointsEarnedNotice = `<div style="text-align:center;"><span class="points-delta-badge ${livePts > 0 ? 'delta-plus' : 'delta-zero'}">مكتسب مباشر الآن: +${livePts} نقطة</span></div>`;
 
@@ -2072,7 +2071,6 @@
                     const finalPts = calculateSingleMatchPoints(matchId, currentUser, data.score1 ?? 0, data.score2 ?? 0);
                     pointsEarnedNotice = `<div style="text-align:center;"><span class="points-delta-badge ${finalPts > 0 ? 'delta-plus' : 'delta-zero'}">حصلت على: +${finalPts} نقطة من هذه المباراة</span></div>`;
                 } else {
-                    // مباراة قادمة (Upcoming)
                     if (hasSavedPrediction && !isEditingNow) {
                         disabledAttr = 'disabled';
                         buttonHtml = `
@@ -2143,22 +2141,29 @@
                 list.innerHTML += `
                     <div class="${cardClass}">
                         <div class="match-header">
-                            <div>${tagHtml}</div>
-                            <div>${deleteBtnHtml}</div>
+                            <span class="stage-badge">${stageText}</span>
+                            <div>
+                                ${tagHtml}
+                                ${deleteBtnHtml}
+                            </div>
                         </div>
-                        <div style="text-align:center;">
-                            <span class="stage-badge">📌 ${stageText}</span>
-                            ${timeDisplayHtml}
+
+                        ${timeDisplayHtml}
+
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin: 10px 0;">
+                            <div style="flex:1; text-align:center; font-weight:bold;">${data.team1}</div>
+                            <div style="display:flex; gap:8px; align-items:center;">
+                                <input type="number" id="pred1_${matchId}" value="${s1Val}" placeholder="0" style="width:50px; text-align:center; font-size:16px; font-weight:bold;" ${disabledAttr}>
+                                <span style="font-weight:bold;">-</span>
+                                <input type="number" id="pred2_${matchId}" value="${s2Val}" placeholder="0" style="width:50px; text-align:center; font-size:16px; font-weight:bold;" ${disabledAttr}>
+                            </div>
+                            <div style="flex:1; text-align:center; font-weight:bold;">${data.team2}</div>
                         </div>
-                        <h4 style="text-align:center; color:var(--primary-accent); margin-bottom:4px; font-size:16px;">${data.team1} VS ${data.team2}</h4>
+
                         ${scoreHeaderHtml}
-                        ${pointsEarnedNotice}
                         ${blockedBannerHtml}
-                        <div style="display:flex; gap:8px; margin-top:8px;">
-                            <input type="number" id="score1_${matchId}" placeholder="أهداف ${data.team1}" value="${s1Val}" ${disabledAttr}>
-                            <input type="number" id="score2_${matchId}" placeholder="أهداف ${data.team2}" value="${s2Val}" ${disabledAttr}>
-                        </div>
                         ${cardSelectHtml}
+                        ${pointsEarnedNotice}
                         ${buttonHtml}
                     </div>
                 `;
@@ -2166,71 +2171,77 @@
         }
 
         function savePrediction(matchId) {
-            const m = globalMatches[matchId];
-            if (m && m.status !== 'upcoming' && m.status !== undefined) return alert('تم إغلاق التوقعات لهذه المباراة!');
-            const s1 = document.getElementById(`score1_${matchId}`).value;
-            const s2 = document.getElementById(`score2_${matchId}`).value;
-            if (s1 === '' || s2 === '') return alert('يرجى كتابة النتيجة كاملة');
+            const p1Val = document.getElementById(`pred1_${matchId}`).value;
+            const p2Val = document.getElementById(`pred2_${matchId}`).value;
 
-            const cardChoice = document.getElementById(`cardSelect_${matchId}`) ? document.getElementById(`cardSelect_${matchId}`).value : 'none';
-            const targetUserChoice = document.getElementById(`targetUserSelect_${matchId}`) ? document.getElementById(`targetUserSelect_${matchId}`).value : '';
+            if (p1Val === '' || p2Val === '') {
+                return alert('يرجى إدخال توقع النتيجة لكلا الفريقين!');
+            }
+
+            const p1 = parseInt(p1Val, 10);
+            const p2 = parseInt(p2Val, 10);
+            const cardSel = document.getElementById(`cardSelect_${matchId}`);
+            const cardUsed = cardSel ? cardSel.value : 'none';
+            let targetUser = 'none';
+
+            if (cardUsed === 'block') {
+                const targetSel = document.getElementById(`targetUserSelect_${matchId}`);
+                if (targetSel) targetUser = targetSel.value;
+            }
 
             db.ref(`predictions/${matchId}/${currentUser}`).set({
-                score1: parseInt(s1),
-                score2: parseInt(s2),
-                cardUsed: cardChoice,
-                targetUser: cardChoice === 'block' ? targetUserChoice : '',
+                score1: p1,
+                score2: p2,
+                cardUsed: cardUsed,
+                targetUser: targetUser,
                 isLocked: true,
                 updatedAt: Date.now()
             }, (err) => {
                 if (!err) {
                     editModeMatchesMap[matchId] = false;
-                    alert('تم حفظ توقعك وإغلاقه بنجاح! 🔒 (يمكنك التعديل لاحقاً بالضغط على القلم)');
+                    alert('تم حفظ وتأكيد توقعك بنجاح! 🔒');
                 }
             });
         }
 
         function listenToLiveMatch() {
             db.ref('liveMatch').on('value', (snap) => {
+                const liveData = snap.val();
                 const banner = document.getElementById('liveMatchBanner');
-                if (snap.exists() && snap.val().isLive) {
-                    activeLiveMatchData = snap.val();
+                if (liveData && liveData.isLive && globalMatches[liveData.matchId]) {
+                    const m = globalMatches[liveData.matchId];
+                    document.getElementById('liveMatchTeams').innerText = `${m.team1} vs ${m.team2}`;
+                    document.getElementById('liveMatchScore').innerText = `${liveData.score1 ?? 0} - ${liveData.score2 ?? 0}`;
                     banner.style.display = 'block';
-                    const m = globalMatches[activeLiveMatchData.matchId];
-                    if (m) {
-                        document.getElementById('liveMatchTeams').innerText = `${m.team1} vs ${m.team2}`;
-                        document.getElementById('liveMatchScore').innerText = `${activeLiveMatchData.score1} - ${activeLiveMatchData.score2}`;
-                    }
                 } else {
-                    activeLiveMatchData = null;
                     banner.style.display = 'none';
                 }
-                updateLeaderboard();
             });
         }
 
-        function calculateSingleMatchPoints(mId, userKey, actualScore1, actualScore2) {
-            const match = globalMatches[mId];
+        function calculateSingleMatchPoints(matchId, userKey, act1, act2) {
+            const match = globalMatches[matchId];
             if (!match) return 0;
 
-            let blockedUsers = [];
+            const pred = globalPredictions[matchId]?.[userKey];
+            if (!pred || pred.score1 === undefined || pred.score1 === '') return 0;
+
+            let isBlocked = false;
             ['eyad', 'mohammed', 'saud'].forEach(u => {
-                const p = globalPredictions[mId]?.[u];
-                if (p && p.cardUsed === 'block' && p.targetUser) {
-                    blockedUsers.push(p.targetUser);
+                const p = globalPredictions[matchId]?.[u];
+                if (p && p.cardUsed === 'block' && p.targetUser === userKey) {
+                    isBlocked = true;
                 }
             });
 
-            if (blockedUsers.includes(userKey)) return 0;
+            if (isBlocked) return 0;
 
-            const pred = globalPredictions[mId]?.[userKey];
-            if (!pred || pred.score1 === undefined || pred.score2 === undefined || pred.score1 === '') return 0;
+            const p1 = parseInt(pred.score1, 10);
+            const p2 = parseInt(pred.score2, 10);
+            const a1 = parseInt(act1, 10);
+            const a2 = parseInt(act2, 10);
 
-            const a1 = parseInt(actualScore1), a2 = parseInt(actualScore2);
-            const p1 = parseInt(pred.score1), p2 = parseInt(pred.score2);
-            const card = pred.cardUsed || 'none';
             const stage = match.stage || '';
-
             let stdExact = 2, stdCorrect = 1;
             if (stage.includes('نصف النهائي')) { stdExact = 4; stdCorrect = 2; }
             else if (stage.includes('النهائي')) { stdExact = 5; stdCorrect = 3; }
@@ -2238,287 +2249,276 @@
             const isExact = (p1 === a1 && p2 === a2);
             const isCorrect = !isExact && ((p1 > p2 && a1 > a2) || (p1 < p2 && a1 < a2) || (p1 === p2 && a1 === a2));
 
-            if (isExact || isCorrect) {
-                let pts = 0;
-                if (card === 'goals') {
-                    pts = a1 + a2;
-                } else {
-                    pts = isExact ? stdExact : stdCorrect;
-                    if (card === 'double') pts *= 2;
-                }
-                return pts;
-            }
-            return 0;
-        }
+            if (!isExact && !isCorrect) return 0;
 
-        function hasFirstMatchStarted() {
-            if (isGrandLocked) return true;
-            return Object.keys(globalMatches).some(mId => {
-                const s = globalMatches[mId].status;
-                return s === 'live' || s === 'finished';
-            });
+            const card = pred.cardUsed || 'none';
+            if (card === 'goals') {
+                return a1 + a2;
+            } else {
+                let base = isExact ? stdExact : stdCorrect;
+                if (card === 'double') base *= 2;
+                return base;
+            }
         }
 
         function calculatePointsAndStats() {
-            let stats = {
-                eyad: { points: 0, exact: 0, correct: 0, wrong: 0 },
-                mohammed: { points: 0, exact: 0, correct: 0, wrong: 0 },
-                saud: { points: 0, exact: 0, correct: 0, wrong: 0 }
+            const result = {
+                eyad: { points: 0, exact: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0 },
+                mohammed: { points: 0, exact: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0 },
+                saud: { points: 0, exact: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0 }
             };
 
-            const usersList = ['eyad', 'mohammed', 'saud'];
+            const finishedMatchIds = Object.keys(globalMatches).filter(mId => globalMatches[mId].status === 'finished');
 
-            let blockedMap = {};
-            Object.keys(globalMatches).forEach(mId => {
-                blockedMap[mId] = [];
-                usersList.forEach(u => {
-                    const p = globalPredictions[mId]?.[u];
-                    if (p && p.cardUsed === 'block' && p.targetUser) {
-                        blockedMap[mId].push(p.targetUser);
-                    }
-                });
-            });
-
-            Object.keys(globalMatches).forEach(mId => {
+            finishedMatchIds.forEach(mId => {
                 const match = globalMatches[mId];
-                if (match.status === 'finished' && match.score1 !== undefined && match.score2 !== undefined) {
-                    const a1 = parseInt(match.score1), a2 = parseInt(match.score2);
-                    const stage = match.stage || '';
+                const a1 = parseInt(match.score1, 10);
+                const a2 = parseInt(match.score2, 10);
 
-                    let stdExact = 2, stdCorrect = 1;
-                    if (stage.includes('نصف النهائي')) { stdExact = 4; stdCorrect = 2; }
-                    else if (stage.includes('النهائي')) { stdExact = 5; stdCorrect = 3; }
+                ['eyad', 'mohammed', 'saud'].forEach(uKey => {
+                    const pts = calculateSingleMatchPoints(mId, uKey, a1, a2);
+                    const pred = globalPredictions[mId]?.[uKey];
 
-                    usersList.forEach(u => {
-                        const pred = globalPredictions[mId]?.[u];
-                        if (!pred || pred.score1 === undefined || pred.score2 === undefined || pred.score1 === '') {
-                            return;
-                        }
-
-                        if (blockedMap[mId].includes(u)) {
-                            stats[u].wrong++;
-                            return;
-                        }
-
-                        const p1 = parseInt(pred.score1), p2 = parseInt(pred.score2);
-                        const card = pred.cardUsed || 'none';
-
+                    if (pred && pred.score1 !== undefined && pred.score1 !== '') {
+                        const p1 = parseInt(pred.score1, 10);
+                        const p2 = parseInt(pred.score2, 10);
                         const isExact = (p1 === a1 && p2 === a2);
                         const isCorrect = !isExact && ((p1 > p2 && a1 > a2) || (p1 < p2 && a1 < a2) || (p1 === p2 && a1 === a2));
 
-                        if (isExact || isCorrect) {
-                            let pts = 0;
-                            if (card === 'goals') {
-                                pts = a1 + a2;
-                            } else {
-                                pts = isExact ? stdExact : stdCorrect;
-                                if (card === 'double') pts *= 2;
-                            }
-
-                            stats[u].points += pts;
-                            if (isExact) stats[u].exact++;
-                            else stats[u].correct++;
+                        if (isExact) {
+                            result[uKey].exact++;
+                            result[uKey].streak++;
+                        } else if (isCorrect) {
+                            result[uKey].correct++;
+                            result[uKey].streak++;
                         } else {
-                            stats[u].wrong++;
+                            result[uKey].wrong++;
+                            result[uKey].streak = 0;
                         }
-                    });
-                }
-            });
 
-            // حساب نقاط التوقعات الكبرى من لوحة التحكم أو الإقصائيات
-            db.ref('officialGrandResults').once('value', (snap) => {
-                const official = snap.val() || {};
-                const kData = tournamentKnockoutData || {};
-                const actChamp = official.champion || kData.champion;
-                const actF1 = official.finalist1 || kData.fn_t1;
-                const actF2 = official.finalist2 || kData.fn_t2;
-
-                usersList.forEach(u => {
-                    const grand = grandPredictionsData[u] || {};
-                    if (actChamp && grand.champion && actChamp.trim().toLowerCase() === grand.champion.trim().toLowerCase()) {
-                        stats[u].points += 3;
-                    }
-                    if (actF1 && actF2 && grand.finalist1 && grand.finalist2) {
-                        const a1 = actF1.trim().toLowerCase();
-                        const a2 = actF2.trim().toLowerCase();
-                        const p1 = grand.finalist1.trim().toLowerCase();
-                        const p2 = grand.finalist2.trim().toLowerCase();
-
-                        if ((p1 === a1 && p2 === a2) || (p1 === a2 && p2 === a1)) {
-                            stats[u].points += 3;
+                        if (result[uKey].streak > result[uKey].maxStreak) {
+                            result[uKey].maxStreak = result[uKey].streak;
                         }
                     }
+                    result[uKey].points += pts;
                 });
             });
 
-            // إضافة التعديلات اليدوية للمشرف إياد
-            usersList.forEach(u => {
-                if (adminAdjustmentsGlobal[u]) {
-                    stats[u].points += parseInt(adminAdjustmentsGlobal[u]) || 0;
+            db.ref('officialGrandResults').once('value', (snap) => {
+                const official = snap.val();
+                if (official) {
+                    ['eyad', 'mohammed', 'saud'].forEach(uKey => {
+                        const userGrand = grandPredictionsData[uKey];
+                        if (userGrand) {
+                            if (official.champion && userGrand.champion === official.champion) {
+                                result[uKey].points += 3;
+                            }
+                            const offFinalists = [official.finalist1, official.finalist2].filter(Boolean);
+                            if (offFinalists.length === 2 && userGrand.finalist1 && userGrand.finalist2) {
+                                const userFinalists = [userGrand.finalist1, userGrand.finalist2];
+                                const matchesCount = userFinalists.filter(f => offFinalists.includes(f)).length;
+                                if (matchesCount === 2) {
+                                    result[uKey].points += 3;
+                                }
+                            }
+                        }
+                    });
                 }
             });
 
-            return stats;
+            ['eyad', 'mohammed', 'saud'].forEach(uKey => {
+                if (adminAdjustmentsGlobal[uKey]) {
+                    result[uKey].points += parseInt(adminAdjustmentsGlobal[uKey], 10) || 0;
+                }
+            });
+
+            return result;
         }
 
         function updateLeaderboard() {
-            const computedStats = calculatePointsAndStats();
+            const stats = calculatePointsAndStats();
             const leaderboardBody = document.getElementById('leaderboard');
             if (!leaderboardBody) return;
+
             leaderboardBody.innerHTML = '';
 
-            const usersListKeys = ['eyad', 'mohammed', 'saud'];
+            const usersArr = ['eyad', 'mohammed', 'saud'].map(uKey => ({
+                key: uKey,
+                name: names[uKey],
+                points: stats[uKey].points,
+                exact: stats[uKey].exact,
+                correct: stats[uKey].correct,
+                wrong: stats[uKey].wrong,
+                data: allUsersGlobalData[uKey] || {}
+            }));
 
-            let liveStatsMap = {
-                eyad: { pts: 0, status: 'wrong' },
-                mohammed: { pts: 0, status: 'wrong' },
-                saud: { pts: 0, status: 'wrong' }
-            };
+            usersArr.sort((a, b) => b.points - a.points || b.exact - a.exact || b.correct - a.correct);
 
-            if (activeLiveMatchData && activeLiveMatchData.isLive) {
-                const liveMatchObj = globalMatches[activeLiveMatchData.matchId];
-                if (liveMatchObj) {
-                    const l1 = parseInt(activeLiveMatchData.score1) || 0;
-                    const l2 = parseInt(activeLiveMatchData.score2) || 0;
+            currentLeader = usersArr[0]?.key || null;
 
-                    usersListKeys.forEach(u => {
-                        const livePts = calculateSingleMatchPoints(activeLiveMatchData.matchId, u, l1, l2);
-                        liveStatsMap[u] = { pts: livePts, status: livePts > 0 ? 'correct' : 'wrong' };
-                    });
-                }
+            const leaderOption = document.getElementById('leaderThemeOption');
+            if (leaderOption) {
+                leaderOption.disabled = (currentLeader !== currentUser);
             }
 
-            let sortedArr = usersListKeys.map(uKey => {
-                return {
-                    key: uKey,
-                    name: names[uKey],
-                    points: computedStats[uKey].points,
-                    exact: computedStats[uKey].exact,
-                    correct: computedStats[uKey].correct,
-                    wrong: computedStats[uKey].wrong,
-                    avatar: (allUsersGlobalData[uKey] && allUsersGlobalData[uKey].avatar) ? allUsersGlobalData[uKey].avatar : 'https://via.placeholder.com/85'
-                };
-            }).sort((a,b) => b.points - a.points || b.exact - a.exact);
-
-            if (sortedArr.length > 0) {
-                currentLeader = sortedArr[0].key;
-                const leaderOpt = document.getElementById('leaderThemeOption');
-                if (leaderOpt) {
-                    leaderOpt.disabled = (currentLeader !== currentUser);
-                }
-            }
-
-            const firstMatchStarted = hasFirstMatchStarted();
-
-            sortedArr.forEach((user, index) => {
-                const rank = index + 1;
+            usersArr.forEach((u, idx) => {
+                const rank = idx + 1;
+                const avatar = u.data.avatar || 'https://via.placeholder.com/36';
+                const nickname = u.data.nickname ? `@${u.data.nickname}` : '';
                 const rankBadge = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : '🥉');
-                const liveData = liveStatsMap[user.key];
-                
-                let liveBadgeHtml = `<span style="color:var(--text-sub); font-size:12px;">-</span>`;
-                if (activeLiveMatchData && activeLiveMatchData.isLive) {
-                    if (liveData.pts > 0) {
-                        liveBadgeHtml = `<span class="pred-badge pred-exact">+${liveData.pts} حية</span>`;
-                    } else {
-                        liveBadgeHtml = `<span class="pred-badge pred-wrong">0 حية</span>`;
+
+                let livePredText = '-';
+                let liveMatchId = null;
+                Object.keys(globalMatches).forEach(mId => {
+                    if (globalMatches[mId].status === 'live') liveMatchId = mId;
+                });
+
+                if (liveMatchId && globalPredictions[liveMatchId]?.[u.key]) {
+                    const p = globalPredictions[liveMatchId][u.key];
+                    if (p.score1 !== undefined && p.score1 !== '') {
+                        livePredText = `${p.score1} - ${p.score2}`;
                     }
                 }
 
-                // عرض التوقع الكلي للمنتخب تحت كل اسم شخص (مخفي حتى أول مباراة)
-                const grand = grandPredictionsData[user.key] || {};
-                let grandSubHtml = '';
-                if (firstMatchStarted) {
-                    const champText = grand.champion || 'لم يتوقع';
-                    const finText = (grand.finalist1 && grand.finalist2) ? `${grand.finalist1} و ${grand.finalist2}` : 'لم يتوقع';
-                    grandSubHtml = `<div class="user-grand-sub">👑 البطل: <b>${champText}</b> | ⚔️ النهائي: <b>${finText}</b></div>`;
-                } else {
-                    grandSubHtml = `<div class="user-grand-sub">🔒 مخفي حتى بداية أول مباراة</div>`;
+                const userGrand = grandPredictionsData[u.key];
+                let grandSummary = 'لم يتوقع بعد';
+                if (userGrand && userGrand.champion) {
+                    grandSummary = `البطل: ${userGrand.champion}`;
                 }
 
                 leaderboardBody.innerHTML += `
                     <tr>
                         <td style="font-weight:bold; font-size:15px;">${rankBadge} ${rank}</td>
-                        <td>
-                            <div class="user-cell" onclick="openMemberCard('${user.key}')">
-                                <div class="user-main-info">
-                                    <img class="user-table-avatar" src="${user.avatar}" alt="Avatar">
-                                    <span style="font-weight:bold; color:#fff; font-size:14px;">${user.name}</span>
+                        <td class="user-cell" onclick="openMemberCard('${u.key}')">
+                            <div class="user-main-info">
+                                <img src="${avatar}" class="user-table-avatar" alt="Avatar">
+                                <div>
+                                    <div style="font-weight:bold; color:var(--text-main); font-size:14px;">${u.name} <span style="font-size:11px; color:var(--text-sub);">${nickname}</span></div>
+                                    <div style="font-size:11px; color:var(--primary-accent);">🎯 ${u.exact} | 🟠 ${u.correct} | 🔴 ${u.wrong}</div>
                                 </div>
-                                ${grandSubHtml}
                             </div>
+                            <div class="user-grand-sub">🏆 ${grandSummary}</div>
                         </td>
-                        <td>${liveBadgeHtml}</td>
-                        <td style="font-weight:bold; font-size:16px; color:var(--primary-accent);">${user.points}</td>
+                        <td><span style="font-weight:bold; font-size:13px; color:var(--primary-accent);">${livePredText}</span></td>
+                        <td style="font-weight:bold; font-size:18px; color:var(--primary-accent);">${u.points}</td>
                     </tr>
                 `;
+            });
 
-                if (user.key === currentUser) {
-                    document.getElementById('st_rank').innerText = `#${rank}`;
-                    document.getElementById('st_points').innerText = user.points;
-                    document.getElementById('st_exact').innerText = user.exact;
-                    document.getElementById('st_correct').innerText = user.correct;
-                    document.getElementById('st_wrong').innerText = user.wrong;
+            if (currentUser && stats[currentUser]) {
+                const myRankIdx = usersArr.findIndex(u => u.key === currentUser);
+                document.getElementById('st_rank').innerText = myRankIdx !== -1 ? `#${myRankIdx + 1}` : '-';
+                document.getElementById('st_points').innerText = stats[currentUser].points;
+                document.getElementById('st_exact').innerText = stats[currentUser].exact;
+                document.getElementById('st_correct').innerText = stats[currentUser].correct;
+                document.getElementById('st_wrong').innerText = stats[currentUser].wrong;
+            }
+
+            let doubleUsed = false, blockUsed = false, goalsUsed = false;
+            Object.keys(globalPredictions).forEach(mId => {
+                const p = globalPredictions[mId]?.[currentUser];
+                if (p && p.cardUsed) {
+                    if (p.cardUsed === 'double') doubleUsed = true;
+                    if (p.cardUsed === 'block') blockUsed = true;
+                    if (p.cardUsed === 'goals') goalsUsed = true;
                 }
             });
 
-            // تحديث كارت الإحصائيات مع إمكانية التعديل اليدوي من المشرف
-            const over = (adminAdjustmentsGlobal && adminAdjustmentsGlobal.overrides) ? adminAdjustmentsGlobal.overrides : {};
+            updateCardBadge('cardBadgeDouble', doubleUsed);
+            updateCardBadge('cardBadgeBlock', blockUsed);
+            updateCardBadge('cardBadgeGoals', goalsUsed);
 
-            let mostExactUser = [...sortedArr].sort((a,b) => b.exact - a.exact)[0];
-            let mostCorrectUser = [...sortedArr].sort((a,b) => b.correct - a.correct)[0];
-            let mostWrongUser = [...sortedArr].sort((a,b) => b.wrong - a.wrong)[0];
+            const overrides = adminAdjustmentsGlobal.overrides || {};
 
-            document.getElementById('stat_most_exact').innerText = over.most_exact || (mostExactUser ? `${mostExactUser.name} (${mostExactUser.exact})` : '-');
-            document.getElementById('stat_most_correct').innerText = over.most_correct || (mostCorrectUser ? `${mostCorrectUser.name} (${mostCorrectUser.correct})` : '-');
-            document.getElementById('stat_most_wrong').innerText = over.most_wrong || (mostWrongUser ? `${mostWrongUser.name} (${mostWrongUser.wrong})` : '-');
-            document.getElementById('stat_best_streak').innerText = over.best_streak || (sortedArr[0] ? `${sortedArr[0].name} (متصدر)` : '-');
+            let maxExactVal = -1, exactUsers = [];
+            usersArr.forEach(u => {
+                if (u.exact > maxExactVal) { maxExactVal = u.exact; exactUsers = [u.name]; }
+                else if (u.exact === maxExactVal && maxExactVal > 0) { exactUsers.push(u.name); }
+            });
+            document.getElementById('stat_most_exact').innerText = overrides.most_exact || (maxExactVal > 0 ? `${exactUsers.join(' و ')} (${maxExactVal})` : '-');
+
+            let maxCorrectVal = -1, correctUsers = [];
+            usersArr.forEach(u => {
+                if (u.correct > maxCorrectVal) { maxCorrectVal = u.correct; correctUsers = [u.name]; }
+                else if (u.correct === maxCorrectVal && maxCorrectVal > 0) { correctUsers.push(u.name); }
+            });
+            document.getElementById('stat_most_correct').innerText = overrides.most_correct || (maxCorrectVal > 0 ? `${correctUsers.join(' و ')} (${maxCorrectVal})` : '-');
+
+            let maxWrongVal = -1, wrongUsers = [];
+            usersArr.forEach(u => {
+                if (u.wrong > maxWrongVal) { maxWrongVal = u.wrong; wrongUsers = [u.name]; }
+                else if (u.wrong === maxWrongVal && maxWrongVal > 0) { wrongUsers.push(u.name); }
+            });
+            document.getElementById('stat_most_wrong').innerText = overrides.most_wrong || (maxWrongVal > 0 ? `${wrongUsers.join(' و ')} (${maxWrongVal})` : '-');
+
+            let maxStreakVal = -1, streakUsers = [];
+            usersArr.forEach(u => {
+                const st = stats[u.key].maxStreak;
+                if (st > maxStreakVal) { maxStreakVal = st; streakUsers = [`${u.name} (${st})`]; }
+                else if (st === maxStreakVal && maxStreakVal > 0) { streakUsers.push(`${u.name} (${st})`); }
+            });
+            document.getElementById('stat_best_streak').innerText = overrides.best_streak || (maxStreakVal > 0 ? streakUsers.join(' و ') : '-');
         }
 
-        // ---------- تهيئة الخلفية والمؤثرات ----------
-        function initCanvasParticles(theme) {
-            const canvas = document.getElementById('bgCanvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-
-            let particles = [];
-            let particleColor = 'rgba(245, 158, 11, 0.25)';
-
-            if (theme === 'theme-snow') particleColor = 'rgba(56, 189, 248, 0.3)';
-            if (theme === 'theme-volcano') particleColor = 'rgba(239, 68, 68, 0.3)';
-            if (theme === 'theme-saudi') particleColor = 'rgba(52, 211, 153, 0.3)';
-            if (theme === 'theme-leader') particleColor = 'rgba(250, 204, 21, 0.35)';
-
-            for (let i = 0; i < 25; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height,
-                    radius: Math.random() * 2 + 1,
-                    speedY: Math.random() * 0.8 + 0.2
-                });
+        function updateCardBadge(elemId, isUsed) {
+            const badge = document.getElementById(elemId);
+            if (!badge) return;
+            if (isUsed) {
+                badge.innerText = 'مستخدمة 🔴';
+                badge.className = 'pred-badge pred-wrong';
+            } else {
+                badge.innerText = 'متاحة 🟢';
+                badge.className = 'card-badge-available';
             }
+        }
+
+        // ---------- خلفية الأشكال المتحركة (Canvas) ----------
+        function initCanvas() {
+            const canvas = document.getElementById('bgCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+
+            const particles = Array.from({ length: 35 }, () => ({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                r: Math.random() * 2 + 1,
+                dx: (Math.random() - 0.5) * 0.6,
+                dy: (Math.random() - 0.5) * 0.6,
+                o: Math.random() * 0.5 + 0.2
+            }));
 
             function animate() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = particleColor;
+                ctx.clearRect(0, 0, width, height);
                 particles.forEach(p => {
+                    p.x += p.dx;
+                    p.y += p.dy;
+                    if (p.x < 0 || p.x > width) p.dx *= -1;
+                    if (p.y < 0 || p.y > height) p.dy *= -1;
+
                     ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(245, 158, 11, ${p.o})`;
                     ctx.fill();
-                    p.y -= p.speedY;
-                    if (p.y < 0) p.y = canvas.height;
                 });
                 requestAnimationFrame(animate);
             }
             animate();
         }
 
+        // ---------- بدء تشغيل التطبيق ----------
         window.onload = function() {
-            initCanvasParticles('theme-gold');
-            const savedUser = localStorage.getItem('logged_in_user');
-            if (savedUser) {
-                selectedUserKey = savedUser;
-                completeLogin(savedUser);
+            initCanvas();
+            const loggedUser = localStorage.getItem('logged_in_user');
+            if (loggedUser) {
+                selectedUserKey = loggedUser;
+                completeLogin(loggedUser);
             } else {
                 checkUserPinState();
             }
