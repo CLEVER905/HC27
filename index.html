@@ -331,7 +331,23 @@
             justify-content: center;
         }
 
-        /* الجداول العامة وجداول مجموعات البطولة */
+        .card-select-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px dashed var(--primary-accent);
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 8px;
+        }
+
+        .card-select-box label {
+            font-size: 11px;
+            color: var(--primary-accent);
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* الجداول العامة وجداول المجموعات */
         .group-table {
             width: 100%;
             border-collapse: collapse;
@@ -355,7 +371,6 @@
             background: rgba(16, 185, 129, 0.08);
         }
 
-        /* تنسيق خانات الإدخال مع العناوين */
         .field-box {
             display: flex;
             flex-direction: column;
@@ -376,7 +391,73 @@
             font-size: 13px;
         }
 
-        /* شجرة الأدوار الإقصائية (Knockout Bracket) */
+        /* شبكة الإحصائيات بالملف الشخصي */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 6px;
+            text-align: center;
+        }
+
+        .stat-box .stat-val {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-accent);
+            margin-top: 4px;
+        }
+
+        .stat-box .stat-lbl {
+            font-size: 11px;
+            color: var(--text-sub);
+        }
+
+        /* كروت البطاقات المساعدة المتبقية */
+        .cards-status-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .card-item-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0,0,0,0.25);
+            border: 1px solid var(--border-color);
+            padding: 10px 12px;
+            border-radius: 10px;
+        }
+
+        .card-badge-available {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid #10b981;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .card-badge-used {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* شجرة الأدوار الإقصائية */
         .bracket-wrapper {
             display: flex;
             flex-direction: column;
@@ -458,7 +539,7 @@
             margin-top: 4px;
         }
 
-        /* تنسيقات جدول الترتيب المعدلة والمكبرة */
+        /* جدول الترتيب */
         table {
             width: 100%;
             border-collapse: collapse;
@@ -515,10 +596,6 @@
         .profile-avatar-container { text-align: center; margin-top: -40px; position: relative; }
         .profile-avatar { width: 80px; height: 80px; border-radius: 50%; border: 4px solid var(--card-bg); object-fit: cover; background-color: #0f172a; }
         .profile-info { text-align: center; padding: 10px 15px 15px; }
-
-        .members-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-top: 10px; }
-        .member-card { background: rgba(0,0,0,0.25); border: 1px solid var(--border-color); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; }
-        .member-card img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-bottom: 4px; }
 
         .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 3000; }
         .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 16px; width: 92%; max-width: 420px; padding: 20px; position: relative; max-height: 90vh; overflow-y: auto; }
@@ -720,7 +797,7 @@
             </div>
         </div>
 
-        <!-- 4. صفحة الملف التعريفي -->
+        <!-- 4. صفحة الملف التعريفي والإحصائيات -->
         <div id="profileTab" class="tab-content">
             <div class="card profile-header-card">
                 <div id="myCoverPhoto" class="cover-photo"></div>
@@ -735,9 +812,83 @@
                 </div>
             </div>
 
+            <!-- كارت الإحصائيات الشاملة -->
             <div class="card">
-                <h3>👥 قائمة المتسابقين</h3>
-                <div class="members-grid" id="membersGrid"></div>
+                <h3>📊 إحصائياتي والأداء</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-lbl">الترتيب</div>
+                        <div class="stat-val" id="st_rank">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">النقاط</div>
+                        <div class="stat-val" id="st_points">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">توقع دقيق 🎯</div>
+                        <div class="stat-val" id="st_exact">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">توقع صحيح ✅</div>
+                        <div class="stat-val" id="st_correct">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">توقع خاطئ ❌</div>
+                        <div class="stat-val" id="st_wrong">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- كارت البطاقات المساعدة المتبقية -->
+            <div class="card">
+                <h3>🃏 البطاقات المساعدة (3 بطاقات)</h3>
+                <div class="cards-status-container">
+                    <div class="card-item-info">
+                        <div>
+                            <b>🚀 تدبيل النقاط (x2)</b>
+                            <div style="font-size:10px; color:var(--text-sub);">تضاعف النقاط للمجموعات عند التوقع الصحيح/الدقيق</div>
+                        </div>
+                        <span id="cardBadgeDouble" class="card-badge-available">متاحة 🟢</span>
+                    </div>
+
+                    <div class="card-item-info">
+                        <div>
+                            <b>🔒 منع متسابق من التوقع</b>
+                            <div style="font-size:10px; color:var(--text-sub);">تستبعد متسابق محدد من نقاط مباراة بالمجموعات</div>
+                        </div>
+                        <span id="cardBadgeBlock" class="card-badge-available">متاحة 🟢</span>
+                    </div>
+
+                    <div class="card-item-info">
+                        <div>
+                            <b>⚽ كل هدف بنقطة</b>
+                            <div style="font-size:10px; color:var(--text-sub);">تحسب النقاط بجميع أهداف المباراة بشرط التوقع الصحيح/الدقيق</div>
+                        </div>
+                        <span id="cardBadgeGoals" class="card-badge-available">متاحة 🟢</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- كارت التوقعات الكبرى -->
+            <div class="card">
+                <h3>🏆 التوقعات الكبرى (البطل وطرفا النهائي)</h3>
+                <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;" id="grandPredLockNotice">يمكنك التعديل والحفظ حتى بداية أول مباراة رسمية في البطولة 🔒</p>
+
+                <label style="font-size:12px; color:var(--primary-accent); font-weight:bold;">👑 توقع بطل البطولة (3 نقاط):</label>
+                <input type="text" id="grandChampion" placeholder="اسم منتخب البطل (مثلاً: السعودية)">
+
+                <div style="display:flex; gap:8px; margin-top:8px;">
+                    <div style="flex:1;">
+                        <label style="font-size:11px; color:var(--primary-accent); font-weight:bold;">⚔️ طرف النهائي الأول (3 نقاط كلياً):</label>
+                        <input type="text" id="grandFinalist1" placeholder="مثلاً: السعودية">
+                    </div>
+                    <div style="flex:1;">
+                        <label style="font-size:11px; color:var(--primary-accent); font-weight:bold;">⚔️ طرف النهائي الثاني:</label>
+                        <input type="text" id="grandFinalist2" placeholder="مثلاً: العراق">
+                    </div>
+                </div>
+
+                <button id="btnSaveGrandPred" onclick="saveGrandPredictions()" style="margin-top:10px;">حفظ التوقعات الكبرى 💾</button>
             </div>
         </div>
 
@@ -745,6 +896,12 @@
         <div id="settingsTab" class="tab-content">
             <div class="card" id="adminSection" style="display:none;">
                 <h3>⚙️ لوحة تحكم المشرف (إياد)</h3>
+
+                <div style="background:rgba(245, 158, 11, 0.1); border:1px solid var(--primary-accent); padding:10px; border-radius:10px; margin-bottom:12px;">
+                    <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🔒 قفل التوقعات الكبرى (البطل والنهائي):</p>
+                    <button id="btnToggleGrandLock" onclick="toggleGrandLock()" style="margin-top:6px; font-size:12px;">قفل/فتح التوقعات الكبرى الآن 🔑</button>
+                </div>
+
                 <p style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">إضافة مباراة جديدة:</p>
                 <input type="text" id="team1" placeholder="الفريق الأول">
                 <input type="text" id="team2" placeholder="الفريق الثاني">
@@ -912,21 +1069,6 @@
         </div>
     </div>
 
-    <div id="memberCardModal" class="modal-overlay">
-        <div class="modal-content" style="padding:0; overflow:hidden;">
-            <span class="close-modal" onclick="closeModal('memberCardModal')" style="z-index:10; background:rgba(0,0,0,0.5); border-radius:50%; width:28px; height:28px; text-align:center; line-height:25px;">&times;</span>
-            <div id="viewMemberCover" class="cover-photo"></div>
-            <div class="profile-avatar-container">
-                <img id="viewMemberAvatar" class="profile-avatar" src="" alt="Avatar">
-            </div>
-            <div class="profile-info">
-                <h2 id="viewMemberName">-</h2>
-                <div id="viewMemberNickname" class="nickname">@اللقب</div>
-                <div id="viewMemberBio" class="bio">...</div>
-            </div>
-        </div>
-    </div>
-
     <!-- الشريط السفلي -->
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('matchesTab', this)">
@@ -973,6 +1115,9 @@
         let globalMatches = {};
         let globalPredictions = {};
         let allUsersGlobalData = {};
+        let grandPredictionsData = {};
+        let tournamentKnockoutData = {};
+        let isGrandLocked = false;
         let currentLeader = null;
         let activeEditingGroup = 'A';
 
@@ -1092,6 +1237,7 @@
             listenToLiveMatch();
             listenToProfiles();
             listenToTournamentData();
+            listenToGrandPredictions();
             loadMyProfile();
         }
 
@@ -1131,9 +1277,11 @@
         function listenToTournamentData() {
             db.ref('tournament').on('value', (snap) => {
                 const data = snap.val() || {};
+                tournamentKnockoutData = data.knockout || {};
                 renderGroupTable('groupATableBody', data.groupA);
                 renderGroupTable('groupBTableBody', data.groupB);
-                renderKnockoutData(data.knockout || {});
+                renderKnockoutData(tournamentKnockoutData);
+                updateLeaderboard();
             });
         }
 
@@ -1376,18 +1524,6 @@
         function listenToProfiles() {
             db.ref('users').on('value', (snap) => {
                 allUsersGlobalData = snap.val() || {};
-                const grid = document.getElementById('membersGrid');
-                grid.innerHTML = '';
-                ['eyad', 'mohammed', 'saud'].forEach(uKey => {
-                    const uData = allUsersGlobalData[uKey] || {};
-                    grid.innerHTML += `
-                        <div class="member-card" onclick="openMemberCard('${uKey}')">
-                            <img src="${uData.avatar || 'https://via.placeholder.com/85'}" alt="Avatar">
-                            <div style="font-size:12px; font-weight:bold;">${names[uKey]}</div>
-                            <div style="font-size:10px; color:var(--primary-accent);">${uData.nickname ? '@'+uData.nickname : ''}</div>
-                        </div>
-                    `;
-                });
                 updateLeaderboard();
             });
         }
@@ -1401,21 +1537,73 @@
             });
         }
 
-        function openMemberCard(uKey) {
-            db.ref(`users/${uKey}`).once('value', (snap) => {
-                const data = snap.val() || {};
-                document.getElementById('viewMemberName').innerText = names[uKey];
-                document.getElementById('viewMemberNickname').innerText = data.nickname ? `@${data.nickname}` : '';
-                document.getElementById('viewMemberBio').innerText = data.bio || 'لا توجد نبذة تعريفية.';
-                document.getElementById('viewMemberAvatar').src = data.avatar || 'https://via.placeholder.com/85';
-                document.getElementById('viewMemberCover').style.backgroundImage = data.cover ? `url('${data.cover}')` : 'none';
-                document.getElementById('memberCardModal').style.display = 'flex';
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        // ---------- إدارة التوقعات الكبرى (البطل والنهائي) ----------
+        function listenToGrandPredictions() {
+            db.ref('grandLock').on('value', (snap) => {
+                isGrandLocked = !!snap.val();
+                const lockNotice = document.getElementById('grandPredLockNotice');
+                const btnSave = document.getElementById('btnSaveGrandPred');
+                const champInp = document.getElementById('grandChampion');
+                const fin1Inp = document.getElementById('grandFinalist1');
+                const fin2Inp = document.getElementById('grandFinalist2');
+
+                if (isGrandLocked) {
+                    lockNotice.innerText = '🔒 التوقعات الكبرى مغلقة رسمياً الآن!';
+                    lockNotice.style.color = '#ef4444';
+                    btnSave.disabled = true;
+                    btnSave.style.opacity = '0.5';
+                    champInp.disabled = true;
+                    fin1Inp.disabled = true;
+                    fin2Inp.disabled = true;
+                } else {
+                    lockNotice.innerText = 'يمكنك التعديل والحفظ حتى بداية أول مباراة رسمية في البطولة 🔒';
+                    lockNotice.style.color = 'var(--text-sub)';
+                    btnSave.disabled = false;
+                    btnSave.style.opacity = '1';
+                    champInp.disabled = false;
+                    fin1Inp.disabled = false;
+                    fin2Inp.disabled = false;
+                }
+            });
+
+            db.ref('grandPredictions').on('value', (snap) => {
+                grandPredictionsData = snap.val() || {};
+                const myGrand = grandPredictionsData[currentUser] || {};
+                document.getElementById('grandChampion').value = myGrand.champion || '';
+                document.getElementById('grandFinalist1').value = myGrand.finalist1 || '';
+                document.getElementById('grandFinalist2').value = myGrand.finalist2 || '';
+                updateLeaderboard();
             });
         }
 
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function saveGrandPredictions() {
+            if (isGrandLocked) return alert('التوقعات الكبرى مغلقة رسمياً!');
+            const champ = document.getElementById('grandChampion').value.trim();
+            const f1 = document.getElementById('grandFinalist1').value.trim();
+            const f2 = document.getElementById('grandFinalist2').value.trim();
 
-        // ---------- إدارة المباريات والتوقعات ----------
+            if (!champ || !f1 || !f2) return alert('يرجى تعبئة توقع البطل وطرفي النهائي كاملاً!');
+
+            db.ref(`grandPredictions/${currentUser}`).set({
+                champion: champ,
+                finalist1: f1,
+                finalist2: f2,
+                updatedAt: Date.now()
+            }, (err) => {
+                if (!err) alert('تم حفظ توقعك الكلي للبطولة بنجاح! 🏆');
+            });
+        }
+
+        function toggleGrandLock() {
+            if (currentUser !== 'eyad') return;
+            db.ref('grandLock').set(!isGrandLocked, (err) => {
+                if (!err) alert(isGrandLocked ? 'تم فتح التوقعات الكبرى' : 'تم قفل التوقعات الكبرى رسمياً!');
+            });
+        }
+
+        // ---------- إدارة المباريات والتوقعات مضافة ببطاقات المساعدة ----------
         function addMatchToCloud() {
             const t1 = document.getElementById('team1').value.trim();
             const t2 = document.getElementById('team2').value.trim();
@@ -1478,6 +1666,14 @@
             db.ref('predictions').on('value', (snap) => { globalPredictions = snap.val() || {}; renderMatches(); updateLeaderboard(); });
         }
 
+        function onCardSelectChange(matchId) {
+            const sel = document.getElementById(`cardSelect_${matchId}`);
+            const blockBox = document.getElementById(`targetBlockBox_${matchId}`);
+            if (sel && blockBox) {
+                blockBox.style.display = (sel.value === 'block') ? 'block' : 'none';
+            }
+        }
+
         function renderMatches() {
             const list = document.getElementById('matchesList');
             const adminSelect = document.getElementById('adminMatchSelect');
@@ -1490,33 +1686,60 @@
                 return;
             }
 
+            // فحص البطاقات المستخدمة للمستخدم الحالي لمنع التكرار
+            let usedDouble = false, usedBlock = false, usedGoals = false;
+            let usedDoubleMatch = '', usedBlockMatch = '', usedGoalsMatch = '';
+
+            Object.keys(globalPredictions).forEach(mId => {
+                const p = globalPredictions[mId][currentUser];
+                if (p && p.cardUsed) {
+                    if (p.cardUsed === 'double') { usedDouble = true; usedDoubleMatch = mId; }
+                    if (p.cardUsed === 'block') { usedBlock = true; usedBlockMatch = mId; }
+                    if (p.cardUsed === 'goals') { usedGoals = true; usedGoalsMatch = mId; }
+                }
+            });
+
             keys.forEach((matchId) => {
                 const data = globalMatches[matchId];
                 const status = data.status || 'upcoming';
                 const stageText = data.stage || 'دوري المجموعات';
+                const isGroupStage = stageText.includes('دوري المجموعات');
 
                 adminSelect.innerHTML += `<option value="${matchId}">${data.team1} vs ${data.team2} (${stageText})</option>`;
 
-                let myPred = (globalPredictions[matchId] && globalPredictions[matchId][currentUser]) ? globalPredictions[matchId][currentUser] : { score1: '', score2: '' };
+                let myPred = (globalPredictions[matchId] && globalPredictions[matchId][currentUser]) ? globalPredictions[matchId][currentUser] : { score1: '', score2: '', cardUsed: 'none', targetUser: '' };
                 let deleteBtnHtml = (currentUser === 'eyad') ? `<button class="btn-delete-match" onclick="deleteMatch('${matchId}')">🗑️</button>` : '<div></div>';
 
                 let cardClass = 'match-card status-upcoming';
                 let tagHtml = '<span class="status-tag tag-upcoming">قادمة ⏳</span>';
                 let disabledAttr = '';
-                let buttonHtml = `<button onclick="savePrediction('${matchId}')" style="margin-top:6px; font-size:13px;">حفظ التوقع 💾</button>`;
+                let buttonHtml = `<button onclick="savePrediction('${matchId}')" style="margin-top:8px; font-size:13px;">حفظ التوقع 💾</button>`;
                 let scoreHeaderHtml = '';
+                let blockedBannerHtml = '';
+
+                // فحص المنع المطبق من شخص آخر في هذه المباراة
+                let blockedByWhom = '';
+                ['eyad', 'mohammed', 'saud'].forEach(u => {
+                    const p = globalPredictions[matchId]?.[u];
+                    if (p && p.cardUsed === 'block' && p.targetUser === currentUser) {
+                        blockedByWhom = names[u];
+                    }
+                });
 
                 if (status === 'live') {
                     cardClass = 'match-card status-live';
                     tagHtml = '<span class="status-tag tag-live">جارية الآن 🔴</span>';
                     disabledAttr = 'disabled';
-                    buttonHtml = `<button disabled style="background:#065f46; color:#a7f3d0; margin-top:6px; font-size:13px;">المباراة جارية - مغلق 🔒</button>`;
+                    buttonHtml = `<button disabled style="background:#065f46; color:#a7f3d0; margin-top:8px; font-size:13px;">المباراة جارية - مغلق 🔒</button>`;
                     scoreHeaderHtml = `<div style="text-align:center; font-weight:bold; color:#10b981; margin: 4px 0;">النتيجة: ${data.score1 ?? 0} - ${data.score2 ?? 0}</div>`;
+                    if (blockedByWhom) {
+                        blockedBannerHtml = `<div style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#ef4444; font-size:11px; padding:4px; text-align:center; border-radius:6px; margin:4px 0;">🔒 تم استخدام بطاقة المنع عليك من المتسابق (${blockedByWhom})! لن تجني نقاط هذه المباراة.</div>`;
+                    }
                 } else if (status === 'finished') {
                     cardClass = 'match-card status-finished';
                     tagHtml = '<span class="status-tag tag-finished">انتهت 🏁</span>';
                     disabledAttr = 'disabled';
-                    buttonHtml = `<button disabled style="background:#334155; color:#94a3b8; margin-top:6px; font-size:13px;">المباراة انتهت - مغلق 🏁</button>`;
+                    buttonHtml = `<button disabled style="background:#334155; color:#94a3b8; margin-top:8px; font-size:13px;">المباراة انتهت - مغلق 🏁</button>`;
                     scoreHeaderHtml = `<div style="text-align:center; font-weight:bold; color:#cbd5e1; margin: 4px 0;">النتيجة النهائية: ${data.score1 ?? 0} - ${data.score2 ?? 0}</div>`;
                 }
 
@@ -1531,6 +1754,46 @@
                     `;
                 }
 
+                // تجهيز قائمة البطاقات المتاحة للمباراة
+                let cardSelectHtml = '';
+                if (status === 'upcoming') {
+                    const curCard = myPred.cardUsed || 'none';
+                    const doubleDis = (!isGroupStage || (usedDouble && usedDoubleMatch !== matchId)) ? 'disabled' : '';
+                    const blockDis = (!isGroupStage || (usedBlock && usedBlockMatch !== matchId)) ? 'disabled' : '';
+                    const goalsDis = (usedGoals && usedGoalsMatch !== matchId) ? 'disabled' : '';
+
+                    let targetUsersOptions = '';
+                    ['eyad', 'mohammed', 'saud'].forEach(uKey => {
+                        if (uKey !== currentUser) {
+                            const selAttr = (myPred.targetUser === uKey) ? 'selected' : '';
+                            targetUsersOptions += `<option value="${uKey}" ${selAttr}>${names[uKey]}</option>`;
+                        }
+                    });
+
+                    cardSelectHtml = `
+                        <div class="card-select-box">
+                            <label>🃏 استخدام بطاقة مساعدة (اختياري):</label>
+                            <select id="cardSelect_${matchId}" onchange="onCardSelectChange('${matchId}')">
+                                <option value="none" ${curCard === 'none' ? 'selected' : ''}>بدون بطاقة</option>
+                                <option value="double" ${curCard === 'double' ? 'selected' : ''} ${doubleDis}>🚀 تدبيل النقاط (x2) ${!isGroupStage ? '(المجموعات فقط)' : (usedDouble && usedDoubleMatch !== matchId ? '(مستخدمة)' : '')}</option>
+                                <option value="block" ${curCard === 'block' ? 'selected' : ''} ${blockDis}>🔒 منع متسابق من التوقع ${!isGroupStage ? '(المجموعات فقط)' : (usedBlock && usedBlockMatch !== matchId ? '(مستخدمة)' : '')}</option>
+                                <option value="goals" ${curCard === 'goals' ? 'selected' : ''} ${goalsDis}>⚽ كل هدف بنقطة ${usedGoals && usedGoalsMatch !== matchId ? '(مستخدمة)' : ''}</option>
+                            </select>
+
+                            <div id="targetBlockBox_${matchId}" style="display: ${curCard === 'block' ? 'block' : 'none'}; margin-top:6px;">
+                                <label style="color:#ef4444;">اختر المتسابق المراد منعه من النقاط:</label>
+                                <select id="targetUserSelect_${matchId}">${targetUsersOptions}</select>
+                            </div>
+                        </div>
+                    `;
+                } else if (myPred.cardUsed && myPred.cardUsed !== 'none') {
+                    let cardName = '';
+                    if (myPred.cardUsed === 'double') cardName = '🚀 تدبيل النقاط (x2)';
+                    if (myPred.cardUsed === 'block') cardName = `🔒 منع المتسابق (${names[myPred.targetUser] || ''})`;
+                    if (myPred.cardUsed === 'goals') cardName = '⚽ كل هدف بنقطة';
+                    cardSelectHtml = `<div style="font-size:11px; color:var(--primary-accent); margin-top:6px; text-align:center;">🃏 البطاقة المستخدمة: <b>${cardName}</b></div>`;
+                }
+
                 list.innerHTML += `
                     <div class="${cardClass}">
                         <div class="match-header">${tagHtml}${deleteBtnHtml}</div>
@@ -1540,10 +1803,12 @@
                         </div>
                         <h4 style="text-align:center; color:var(--primary-accent); margin-bottom:4px; font-size:16px;">${data.team1} VS ${data.team2}</h4>
                         ${scoreHeaderHtml}
+                        ${blockedBannerHtml}
                         <div style="display:flex; gap:8px; margin-top:8px;">
                             <input type="number" id="score1_${matchId}" placeholder="أهداف ${data.team1}" value="${myPred.score1 !== undefined ? myPred.score1 : ''}" ${disabledAttr}>
                             <input type="number" id="score2_${matchId}" placeholder="أهداف ${data.team2}" value="${myPred.score2 !== undefined ? myPred.score2 : ''}" ${disabledAttr}>
                         </div>
+                        ${cardSelectHtml}
                         ${buttonHtml}
                     </div>
                 `;
@@ -1557,8 +1822,15 @@
             const s2 = document.getElementById(`score2_${matchId}`).value;
             if (s1 === '' || s2 === '') return alert('يرجى كتابة النتيجة كاملة');
 
+            const cardChoice = document.getElementById(`cardSelect_${matchId}`) ? document.getElementById(`cardSelect_${matchId}`).value : 'none';
+            const targetUserChoice = document.getElementById(`targetUserSelect_${matchId}`) ? document.getElementById(`targetUserSelect_${matchId}`).value : '';
+
             db.ref(`predictions/${matchId}/${currentUser}`).set({
-                score1: parseInt(s1), score2: parseInt(s2), updatedAt: Date.now()
+                score1: parseInt(s1),
+                score2: parseInt(s2),
+                cardUsed: cardChoice,
+                targetUser: cardChoice === 'block' ? targetUserChoice : '',
+                updatedAt: Date.now()
             });
             alert('تم حفظ توقعك بنجاح!');
         }
@@ -1582,27 +1854,105 @@
             });
         }
 
-        function calculatePoints() {
-            let scores = { eyad: 0, mohammed: 0, saud: 0 };
+        // ---------- دالة الشاملة لحساب النقاط والإحصائيات والبطاقات ----------
+        function calculatePointsAndStats() {
+            let stats = {
+                eyad: { points: 0, exact: 0, correct: 0, wrong: 0 },
+                mohammed: { points: 0, exact: 0, correct: 0, wrong: 0 },
+                saud: { points: 0, exact: 0, correct: 0, wrong: 0 }
+            };
+
+            const usersList = ['eyad', 'mohammed', 'saud'];
+
+            // تحديد المباريات والمستخدمين الممنوعين بواسطة بطاقة المنع
+            let blockedMap = {};
+            Object.keys(globalMatches).forEach(mId => {
+                blockedMap[mId] = [];
+                usersList.forEach(u => {
+                    const p = globalPredictions[mId]?.[u];
+                    if (p && p.cardUsed === 'block' && p.targetUser) {
+                        blockedMap[mId].push(p.targetUser);
+                    }
+                });
+            });
+
+            // 1. حساب مباريات انتهت
             Object.keys(globalMatches).forEach(mId => {
                 const match = globalMatches[mId];
                 if (match.status === 'finished' && match.score1 !== undefined && match.score2 !== undefined) {
-                    const a1 = match.score1, a2 = match.score2;
-                    ['eyad', 'mohammed', 'saud'].forEach(u => {
-                        if (globalPredictions[mId] && globalPredictions[mId][u]) {
-                            const p1 = globalPredictions[mId][u].score1, p2 = globalPredictions[mId][u].score2;
-                            if (p1 === a1 && p2 === a2) scores[u] += 3;
-                            else if ((p1 > p2 && a1 > a2) || (p1 < p2 && a1 < a2) || (p1 === p2 && a1 === a2)) scores[u] += 1;
+                    const a1 = parseInt(match.score1), a2 = parseInt(match.score2);
+                    const stage = match.stage || '';
+
+                    // نقاط المرحلة الرسمية (تحديث: دور المجموعات التوقع الدقيق = 2 نقاط)
+                    let stdExact = 2, stdCorrect = 1;
+                    if (stage.includes('نصف النهائي')) { stdExact = 4; stdCorrect = 2; }
+                    else if (stage.includes('النهائي')) { stdExact = 5; stdCorrect = 3; }
+
+                    usersList.forEach(u => {
+                        const pred = globalPredictions[mId]?.[u];
+                        if (!pred || pred.score1 === undefined || pred.score2 === undefined || pred.score1 === '' || pred.score2 === '') {
+                            return;
+                        }
+
+                        // إذا تم استخدام بطاقة المنع عليه
+                        if (blockedMap[mId].includes(u)) {
+                            stats[u].wrong++;
+                            return;
+                        }
+
+                        const p1 = parseInt(pred.score1), p2 = parseInt(pred.score2);
+                        const card = pred.cardUsed || 'none';
+
+                        const isExact = (p1 === a1 && p2 === a2);
+                        const isCorrect = !isExact && ((p1 > p2 && a1 > a2) || (p1 < p2 && a1 < a2) || (p1 === p2 && a1 === a2));
+
+                        if (isExact || isCorrect) {
+                            let pts = 0;
+                            if (card === 'goals') {
+                                pts = a1 + a2; // كل هدف بنقطة
+                            } else {
+                                pts = isExact ? stdExact : stdCorrect;
+                                if (card === 'double') pts *= 2; // تدبيل النقاط
+                            }
+
+                            stats[u].points += pts;
+                            if (isExact) stats[u].exact++;
+                            else stats[u].correct++;
+                        } else {
+                            stats[u].wrong++;
                         }
                     });
                 }
             });
-            return scores;
+
+            // 2. حساب التوقعات الكبرى (البطل والنهائي)
+            const kData = tournamentKnockoutData || {};
+            usersList.forEach(u => {
+                const grand = grandPredictionsData[u] || {};
+                // توقع البطل (3 نقاط)
+                if (kData.champion && grand.champion && kData.champion.trim().toLowerCase() === grand.champion.trim().toLowerCase()) {
+                    stats[u].points += 3;
+                }
+                // توقع طرفي النهائي (3 نقاط)
+                if (kData.fn_t1 && kData.fn_t2 && grand.finalist1 && grand.finalist2) {
+                    const act1 = kData.fn_t1.trim().toLowerCase();
+                    const act2 = kData.fn_t2.trim().toLowerCase();
+                    const pred1 = grand.finalist1.trim().toLowerCase();
+                    const pred2 = grand.finalist2.trim().toLowerCase();
+
+                    if ((pred1 === act1 && pred2 === act2) || (pred1 === act2 && pred2 === act1)) {
+                        stats[u].points += 3;
+                    }
+                }
+            });
+
+            return stats;
         }
 
         function updateLeaderboard() {
-            const computedScores = calculatePoints();
+            const computedStats = calculatePointsAndStats();
             const leaderboardBody = document.getElementById('leaderboard');
+            if (!leaderboardBody) return;
             leaderboardBody.innerHTML = '';
 
             let usersList = ['eyad', 'mohammed', 'saud'].map(uKey => {
@@ -1617,19 +1967,31 @@
                 }
 
                 const uData = allUsersGlobalData[uKey] || {};
-                return { key: uKey, name: names[uKey], avatar: uData.avatar || 'https://via.placeholder.com/38', points: computedScores[uKey] || 0, livePredStr: livePredStr, predClass: predClass };
+                return {
+                    key: uKey,
+                    name: names[uKey],
+                    avatar: uData.avatar || 'https://via.placeholder.com/38',
+                    points: computedStats[uKey].points,
+                    exact: computedStats[uKey].exact,
+                    correct: computedStats[uKey].correct,
+                    wrong: computedStats[uKey].wrong,
+                    livePredStr: livePredStr,
+                    predClass: predClass
+                };
             });
 
             usersList.sort((a, b) => b.points - a.points);
             currentLeader = usersList[0].key;
 
             const leaderOpt = document.getElementById('leaderThemeOption');
-            if (currentLeader === currentUser) {
-                leaderOpt.disabled = false;
-                leaderOpt.innerText = '👑 ثيم المتصدر (مُفعل لك الآن!)';
-            } else {
-                leaderOpt.disabled = true;
-                leaderOpt.innerText = '👑 ثيم المتصدر (حصري للمركز الأول)';
+            if (leaderOpt) {
+                if (currentLeader === currentUser) {
+                    leaderOpt.disabled = false;
+                    leaderOpt.innerText = '👑 ثيم المتصدر (مُفعل لك الآن!)';
+                } else {
+                    leaderOpt.disabled = true;
+                    leaderOpt.innerText = '👑 ثيم المتصدر (حصري للمركز الأول)';
+                }
             }
 
             usersList.forEach((user, index) => {
@@ -1647,7 +2009,35 @@
                         <td style="font-size:16px;"><b>${user.points}</b></td>
                     </tr>
                 `;
+
+                if (user.key === currentUser) {
+                    document.getElementById('st_rank').innerText = `#${index + 1}`;
+                    document.getElementById('st_points').innerText = user.points;
+                    document.getElementById('st_exact').innerText = user.exact;
+                    document.getElementById('st_correct').innerText = user.correct;
+                    document.getElementById('st_wrong').innerText = user.wrong;
+                }
             });
+
+            // التحديث المرئي لحالة بطاقات المستخدم الحالية
+            let dUsed = false, bUsed = false, gUsed = false;
+            Object.keys(globalPredictions).forEach(mId => {
+                const p = globalPredictions[mId][currentUser];
+                if (p && p.cardUsed) {
+                    if (p.cardUsed === 'double') dUsed = true;
+                    if (p.cardUsed === 'block') bUsed = true;
+                    if (p.cardUsed === 'goals') gUsed = true;
+                }
+            });
+
+            document.getElementById('cardBadgeDouble').className = dUsed ? 'card-badge-used' : 'card-badge-available';
+            document.getElementById('cardBadgeDouble').innerText = dUsed ? 'مستخدمة 🔴' : 'متاحة 🟢';
+
+            document.getElementById('cardBadgeBlock').className = bUsed ? 'card-badge-used' : 'card-badge-available';
+            document.getElementById('cardBadgeBlock').innerText = bUsed ? 'مستخدمة 🔴' : 'متاحة 🟢';
+
+            document.getElementById('cardBadgeGoals').className = gUsed ? 'card-badge-used' : 'card-badge-available';
+            document.getElementById('cardBadgeGoals').innerText = gUsed ? 'مستخدمة 🔴' : 'متاحة 🟢';
         }
 
         // ---------- تأثيرات خلفية Canvas ----------
