@@ -391,10 +391,10 @@
             font-size: 13px;
         }
 
-        /* شبكة الإحصائيات بالملف الشخصي */
+        /* شبكة الإحصائيات */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
             margin-top: 10px;
         }
@@ -403,12 +403,12 @@
             background: rgba(0, 0, 0, 0.35);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 12px 6px;
+            padding: 12px 8px;
             text-align: center;
         }
 
         .stat-box .stat-val {
-            font-size: 20px;
+            font-size: 15px;
             font-weight: bold;
             color: var(--primary-accent);
             margin-top: 4px;
@@ -567,6 +567,7 @@
             width: 110px;
             margin: 0 auto;
             text-align: right;
+            cursor: pointer;
         }
 
         .user-table-avatar {
@@ -587,7 +588,6 @@
             font-weight: bold;
         }
 
-        /* تعديل ألوان الشارات حسب الطلب */
         .pred-wrong { 
             background-color: rgba(239, 68, 68, 0.2); 
             color: #ef4444; 
@@ -645,6 +645,17 @@
         .nav-item.active { color: var(--primary-accent); font-weight: bold; transform: translateY(-2px); }
 
         .edit-btn-small { width: auto; padding: 3px 8px; font-size: 11px; background: rgba(245, 158, 11, 0.2); color: var(--primary-accent); border: 1px solid var(--primary-accent); border-radius: 6px; }
+
+        .history-item {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 10px;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body class="theme-gold">
@@ -720,6 +731,29 @@
                     </thead>
                     <tbody id="leaderboard"></tbody>
                 </table>
+            </div>
+
+            <!-- كارت إحصائيات المتسابقين الكبرى أسفل الترتيب -->
+            <div class="card">
+                <h3>📊 إحصائيات المتسابقين</h3>
+                <div class="stats-grid" id="competitorsStatsGrid">
+                    <div class="stat-box">
+                        <div class="stat-lbl">🎯 الأكثر توقعاً دقيقاً</div>
+                        <div class="stat-val" id="stat_most_exact">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">🟠 الأكثر توقعاً صحيحاً</div>
+                        <div class="stat-val" id="stat_most_correct">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">🔴 الأكثر توقعاً خاطئاً</div>
+                        <div class="stat-val" id="stat_most_wrong">-</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">🔥 أفضل ستريك متتالي</div>
+                        <div class="stat-val" id="stat_best_streak">-</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -829,7 +863,7 @@
             <!-- كارت الإحصائيات الشاملة -->
             <div class="card">
                 <h3>📊 إحصائياتي والأداء</h3>
-                <div class="stats-grid">
+                <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
                     <div class="stat-box">
                         <div class="stat-lbl">الترتيب</div>
                         <div class="stat-val" id="st_rank">-</div>
@@ -843,11 +877,11 @@
                         <div class="stat-val" id="st_exact">0</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-lbl">توقع صحيح ✅</div>
+                        <div class="stat-lbl">توقع صحيح 🟠</div>
                         <div class="stat-val" id="st_correct">0</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-lbl">توقع خاطئ ❌</div>
+                        <div class="stat-lbl">توقع خاطئ 🔴</div>
                         <div class="stat-val" id="st_wrong">0</div>
                     </div>
                 </div>
@@ -1019,7 +1053,7 @@
                 </div>
                 <div style="flex:1;">
                     <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
-                    <input type="number" id="k_sf2_s2" placeholder="0">
+                    <input type="number" id="k_sf2_s1" placeholder="0">
                 </div>
             </div>
             <div style="display:flex; gap:6px;">
@@ -1080,6 +1114,42 @@
             <input type="file" id="coverFileInput" accept="image/*">
 
             <button onclick="saveProfileToCloud()" style="margin-top:12px;">حفظ التعديلات ☁️</button>
+        </div>
+    </div>
+
+    <!-- نافذة استعراض ملف المتسابق العام -->
+    <div id="memberCardModal" class="modal-overlay">
+        <div class="modal-content" style="padding:0; overflow:hidden;">
+            <span class="close-modal" onclick="closeModal('memberCardModal')" style="z-index:10; background:rgba(0,0,0,0.5); border-radius:50%; width:28px; height:28px; text-align:center; line-height:25px;">&times;</span>
+            <div id="viewMemberCover" class="cover-photo"></div>
+            <div class="profile-avatar-container">
+                <img id="viewMemberAvatar" class="profile-avatar" src="" alt="Avatar">
+            </div>
+            <div class="profile-info" style="padding: 10px 15px 20px;">
+                <h2 id="viewMemberName">-</h2>
+                <div id="viewMemberNickname" class="nickname">@اللقب</div>
+                <div id="viewMemberBio" class="bio">...</div>
+
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin: 12px 0;">
+                    <div class="stat-box" style="padding: 8px 4px;">
+                        <div class="stat-lbl" style="font-size:10px;">دقيق 🎯</div>
+                        <div class="stat-val" id="viewMemberExact" style="font-size:16px;">0</div>
+                    </div>
+                    <div class="stat-box" style="padding: 8px 4px;">
+                        <div class="stat-lbl" style="font-size:10px;">صحيح 🟠</div>
+                        <div class="stat-val" id="viewMemberCorrect" style="font-size:16px;">0</div>
+                    </div>
+                    <div class="stat-box" style="padding: 8px 4px;">
+                        <div class="stat-lbl" style="font-size:10px;">خاطئ 🔴</div>
+                        <div class="stat-val" id="viewMemberWrong" style="font-size:16px;">0</div>
+                    </div>
+                </div>
+
+                <h4 style="font-size:13px; color:var(--primary-accent); margin-bottom:8px; text-align:right;">📜 سجل توقعات المباريات المنتهية:</h4>
+                <div id="viewMemberHistory" style="max-height: 180px; overflow-y: auto; text-align: right; display:flex; flex-direction:column; gap:6px;">
+                    <p style="font-size:11px; color:var(--text-sub); text-align:center;">لا توجد مباريات منتهية حتى الآن.</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -1551,6 +1621,77 @@
             });
         }
 
+        function openMemberCard(uKey) {
+            const uData = allUsersGlobalData[uKey] || {};
+            const stats = calculatePointsAndStats()[uKey] || { exact: 0, correct: 0, wrong: 0 };
+
+            document.getElementById('viewMemberName').innerText = names[uKey] || uKey;
+            document.getElementById('viewMemberNickname').innerText = uData.nickname ? `@${uData.nickname}` : '@اللقب';
+            document.getElementById('viewMemberBio').innerText = uData.bio || 'لا توجد نبذة تعريفية.';
+            document.getElementById('viewMemberAvatar').src = uData.avatar || 'https://via.placeholder.com/85';
+            document.getElementById('viewMemberCover').style.backgroundImage = uData.cover ? `url('${uData.cover}')` : 'none';
+
+            document.getElementById('viewMemberExact').innerText = stats.exact;
+            document.getElementById('viewMemberCorrect').innerText = stats.correct;
+            document.getElementById('viewMemberWrong').innerText = stats.wrong;
+
+            // استعراض سجل توقعات المباريات المنتهية للمتسابق
+            const historyContainer = document.getElementById('viewMemberHistory');
+            historyContainer.innerHTML = '';
+
+            let finishedMatchesKeys = Object.keys(globalMatches).filter(mId => globalMatches[mId].status === 'finished');
+
+            if (finishedMatchesKeys.length === 0) {
+                historyContainer.innerHTML = '<p style="font-size:11px; color:var(--text-sub); text-align:center;">لا توجد مباريات منتهية حتى الآن.</p>';
+            } else {
+                finishedMatchesKeys.forEach(mId => {
+                    const match = globalMatches[mId];
+                    const pred = globalPredictions[mId]?.[uKey];
+                    const a1 = parseInt(match.score1), a2 = parseInt(match.score2);
+                    const stage = match.stage || '';
+
+                    let stdExact = 2, stdCorrect = 1;
+                    if (stage.includes('نصف النهائي')) { stdExact = 4; stdCorrect = 2; }
+                    else if (stage.includes('النهائي')) { stdExact = 5; stdCorrect = 3; }
+
+                    let predText = 'لم يتوقع', ptsEarned = 0, badgeClass = 'pred-wrong';
+
+                    if (pred && pred.score1 !== undefined && pred.score2 !== undefined && pred.score1 !== '') {
+                        const p1 = parseInt(pred.score1), p2 = parseInt(pred.score2);
+                        const card = pred.cardUsed || 'none';
+                        predText = `${p1} - ${p2}`;
+
+                        const isExact = (p1 === a1 && p2 === a2);
+                        const isCorrect = !isExact && ((p1 > p2 && a1 > a2) || (p1 < p2 && a1 < a2) || (p1 === p2 && a1 === a2));
+
+                        if (isExact || isCorrect) {
+                            if (card === 'goals') ptsEarned = a1 + a2;
+                            else {
+                                ptsEarned = isExact ? stdExact : stdCorrect;
+                                if (card === 'double') ptsEarned *= 2;
+                            }
+                            badgeClass = isExact ? 'pred-exact' : 'pred-correct';
+                        }
+                    }
+
+                    historyContainer.innerHTML += `
+                        <div class="history-item">
+                            <div>
+                                <div style="font-weight:bold; color:var(--primary-accent);">${match.team1} vs ${match.team2}</div>
+                                <div style="font-size:10px; color:var(--text-sub);">النتيجة: ${a1} - ${a2}</div>
+                            </div>
+                            <div style="text-align:left;">
+                                <span class="pred-badge ${badgeClass}">${predText}</span>
+                                <div style="font-size:11px; font-weight:bold; color:#facc15; margin-top:2px;">+${ptsEarned} نقطة</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('memberCardModal').style.display = 'flex';
+        }
+
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
         // ---------- إدارة التوقعات الكبرى (البطل والنهائي) ----------
@@ -1963,7 +2104,6 @@
 
             const usersListKeys = ['eyad', 'mohammed', 'saud'];
 
-            // حساب نقاط وحالة التوقع المباشر حال وجود مباراة جارية الآن
             let liveStatsMap = {
                 eyad: { pts: 0, status: 'wrong' },
                 mohammed: { pts: 0, status: 'wrong' },
@@ -2075,12 +2215,11 @@
             usersList.forEach((user, index) => {
                 const rankDisplay = index === 0 ? `<span style="color:#facc15; font-weight:bold;">1 🏆</span>` : `<b>${index + 1}</b>`;
 
-                // تجهيز مؤشر (+X) الملون للمباشر
                 let livePtsBadgeHtml = '';
                 if (activeLiveMatchData && activeLiveMatchData.isLive) {
-                    let badgeColor = '#ef4444'; // أحمر للخطأ
-                    if (user.liveStatus === 'exact') badgeColor = '#22c55e'; // أخضر للدقيق
-                    if (user.liveStatus === 'correct') badgeColor = '#f59e0b'; // برتقالي للصحيح
+                    let badgeColor = '#ef4444';
+                    if (user.liveStatus === 'exact') badgeColor = '#22c55e';
+                    if (user.liveStatus === 'correct') badgeColor = '#f59e0b';
 
                     livePtsBadgeHtml = `<span style="color:${badgeColor}; font-size:13px; font-weight:bold; margin-right:3px;">(+${user.livePts})</span>`;
                 }
@@ -2089,7 +2228,7 @@
                     <tr>
                         <td style="font-weight:bold;">${rankDisplay}</td>
                         <td>
-                            <div class="user-cell">
+                            <div class="user-cell" onclick="openMemberCard('${user.key}')">
                                 <img src="${user.avatar}" class="user-table-avatar" alt="${user.name}">
                                 <b>${user.name}</b>
                             </div>
@@ -2110,6 +2249,9 @@
                 }
             });
 
+            // حساب أرقام وإحصائيات المتسابقين الأربعة الكبرى
+            calculateCompetitorsStats(usersListKeys);
+
             let dUsed = false, bUsed = false, gUsed = false;
             Object.keys(globalPredictions).forEach(mId => {
                 const p = globalPredictions[mId][currentUser];
@@ -2128,6 +2270,73 @@
 
             document.getElementById('cardBadgeGoals').className = gUsed ? 'card-badge-used' : 'card-badge-available';
             document.getElementById('cardBadgeGoals').innerText = gUsed ? 'مستخدمة 🔴' : 'متاحة 🟢';
+        }
+
+        // ---------- حساب إحصائيات المتسابقين الكبرى (الأكثر والستريك) ----------
+        function calculateCompetitorsStats(usersListKeys) {
+            const computedStats = calculatePointsAndStats();
+
+            let maxExactVal = -1, mostExactUser = '-';
+            let maxCorrectVal = -1, mostCorrectUser = '-';
+            let maxWrongVal = -1, mostWrongUser = '-';
+
+            usersListKeys.forEach(uKey => {
+                const s = computedStats[uKey];
+                if (s.exact > maxExactVal) { maxExactVal = s.exact; mostExactUser = `${names[uKey]} (${s.exact})`; }
+                if (s.correct > maxCorrectVal) { maxCorrectVal = s.correct; mostCorrectUser = `${names[uKey]} (${s.correct})`; }
+                if (s.wrong > maxWrongVal) { maxWrongVal = s.wrong; mostWrongUser = `${names[uKey]} (${s.wrong})`; }
+            });
+
+            // حساب أفضل ستريك (الستريك الأطول لللتوقعات المتتالية الناجحة)
+            let finishedMatches = Object.keys(globalMatches)
+                .map(mId => ({ id: mId, ...globalMatches[mId] }))
+                .filter(m => m.status === 'finished')
+                .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+
+            let bestStreakOverall = 0;
+            let bestStreakUser = '-';
+
+            usersListKeys.forEach(uKey => {
+                let currentStreak = 0;
+                let maxUserStreak = 0;
+
+                finishedMatches.forEach(m => {
+                    const pred = globalPredictions[m.id]?.[uKey];
+                    const a1 = parseInt(m.score1), a2 = parseInt(m.score2);
+
+                    // فحص إذا كان ممنوعاً
+                    let isBlocked = false;
+                    usersListKeys.forEach(otherUser => {
+                        const p = globalPredictions[m.id]?.[otherUser];
+                        if (p && p.cardUsed === 'block' && p.targetUser === uKey) isBlocked = true;
+                    });
+
+                    if (pred && pred.score1 !== undefined && pred.score1 !== '' && !isBlocked) {
+                        const p1 = parseInt(pred.score1), p2 = parseInt(pred.score2);
+                        const isExact = (p1 === a1 && p2 === a2);
+                        const isCorrect = !isExact && ((p1 > p2 && a1 > a2) || (p1 < p2 && a1 < a2) || (p1 === p2 && a1 === a2));
+
+                        if (isExact || isCorrect) {
+                            currentStreak++;
+                            if (currentStreak > maxUserStreak) maxUserStreak = currentStreak;
+                        } else {
+                            currentStreak = 0;
+                        }
+                    } else {
+                        currentStreak = 0;
+                    }
+                });
+
+                if (maxUserStreak > bestStreakOverall) {
+                    bestStreakOverall = maxUserStreak;
+                    bestStreakUser = `${names[uKey]} (${maxUserStreak} مباريات🔥)`;
+                }
+            });
+
+            document.getElementById('stat_most_exact').innerText = mostExactUser;
+            document.getElementById('stat_most_correct').innerText = mostCorrectUser;
+            document.getElementById('stat_most_wrong').innerText = mostWrongUser;
+            document.getElementById('stat_best_streak').innerText = bestStreakOverall > 0 ? bestStreakUser : 'لا يوجد حالياً';
         }
 
         // ---------- تأثيرات خلفية Canvas ----------
