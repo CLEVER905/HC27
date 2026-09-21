@@ -970,6 +970,33 @@
         let currentLeader = null;
         let activeEditingGroup = 'A';
 
+        // دالة تنسيق التاريخ بجمع اسم اليوم مع التاريخ
+        function formatArabicDate(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            const d = new Date(year, month, day);
+            const days = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+            const dayName = days[d.getDay()];
+            return `${dayName} (${day}/${parts[1]}/${year})`;
+        }
+
+        // دالة تحويل الوقت لنظام 12 ساعة مع (ص / م)
+        function format12HourTime(timeStr) {
+            if (!timeStr) return '';
+            const parts = timeStr.split(':');
+            if (parts.length < 2) return timeStr;
+            let hours = parseInt(parts[0], 10);
+            const minutes = parts[1];
+            const period = hours >= 12 ? 'م' : 'ص';
+            hours = hours % 12;
+            if (hours === 0) hours = 12;
+            return `${hours}:${minutes} ${period}`;
+        }
+
         function selectUserCard(userKey) {
             const boundUser = localStorage.getItem('bound_device_user');
             if (boundUser && boundUser !== userKey) {
@@ -1096,7 +1123,7 @@
             initCanvasParticles(themeClass);
         }
 
-        // ---------- إدارة البطولة السحابية والعناوين المكتوبة فوق الخانات ----------
+        // ---------- إدارة البطولة السحابية ----------
         function listenToTournamentData() {
             db.ref('tournament').on('value', (snap) => {
                 const data = snap.val() || {};
@@ -1384,7 +1411,7 @@
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ---------- إدارة المباريات والتوقعات مضافة بالوقت والتاريخ ----------
+        // ---------- إدارة المباريات والتوقعات مضافة بالوقت والتاريخ المعدلين ----------
         function addMatchToCloud() {
             const t1 = document.getElementById('team1').value.trim();
             const t2 = document.getElementById('team2').value.trim();
@@ -1489,12 +1516,14 @@
                     scoreHeaderHtml = `<div style="text-align:center; font-weight:bold; color:#cbd5e1; margin: 4px 0;">النتيجة النهائية: ${data.score1 ?? 0} - ${data.score2 ?? 0}</div>`;
                 }
 
-                // تجهيز العرض للتاريخ والوقت
+                // تنسيق التاريخ والوقت (اليوم + التاريخ + الوقت 12 ساعة)
                 let timeDisplayHtml = '';
                 if (data.matchDate || data.matchTime) {
+                    const formattedDate = formatArabicDate(data.matchDate);
+                    const formattedTime = format12HourTime(data.matchTime);
                     timeDisplayHtml = `
                         <div class="match-time-badge">
-                            ${data.matchDate ? '📅 ' + data.matchDate : ''} ${data.matchTime ? ' | ⏰ ' + data.matchTime : ''}
+                            ${formattedDate ? '📅 ' + formattedDate : ''} ${formattedTime ? ' | ⏰ ' + formattedTime : ''}
                         </div>
                     `;
                 }
