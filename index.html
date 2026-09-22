@@ -9,6 +9,9 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
+    <!-- مكتبة الألعاب النارية والطراطيع الاحتفالية -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <style>
         :root {
             --bg-color: #0a0f1d;
@@ -126,6 +129,39 @@
             padding: 4px 12px;
             font-size: 11px;
             margin: 0;
+        }
+
+        /* لافتة الفائز وتأثيرات نهاية البطولة */
+        .tournament-winner-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(239, 68, 68, 0.3), rgba(250, 204, 21, 0.3));
+            border: 2px solid #facc15;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(250, 204, 21, 0.4);
+            animation: winnerGlow 2s infinite alternate;
+        }
+
+        @keyframes winnerGlow {
+            0% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.3); transform: scale(1); }
+            100% { box-shadow: 0 0 30px rgba(250, 204, 21, 0.8); transform: scale(1.01); }
+        }
+
+        .champion-glow-row {
+            background: linear-gradient(90deg, rgba(250, 204, 21, 0.25), rgba(245, 158, 11, 0.1)) !important;
+            border: 2px solid #facc15 !important;
+            box-shadow: 0 0 15px rgba(250, 204, 21, 0.4);
+        }
+
+        .champion-decorated-name {
+            color: #facc15 !important;
+            font-weight: bold;
+            font-size: 15px;
+            text-shadow: 0 0 10px rgba(250, 204, 21, 0.8);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
         }
 
         /* حاوية مباريات المباشر المتعددة في صفحة الترتيب */
@@ -835,6 +871,13 @@
 
         <!-- 2. صفحة الترتيب -->
         <div id="standingsTab" class="tab-content">
+            <!-- لافتة التتويج ببطولة التوقعات (تظهر عند إنهاء البطولة) -->
+            <div id="tournamentWinnerBanner" class="tournament-winner-banner" style="display:none;">
+                <div style="font-size:24px; margin-bottom:4px;">🎉 🏆 👑 🏆 🎉</div>
+                <h2 style="color:#facc15; font-size:20px; text-shadow: 0 0 12px rgba(250, 204, 21, 0.8);" id="winnerBannerName">-</h2>
+                <p style="font-size:13px; color:#f1f5f9; margin-top:4px;">بطل مسابقة التوقعات لكأس الخليج 27 🌟 ألف مبروك الصدارة والتتويج!</p>
+            </div>
+
             <!-- حاوية مباريات المباشر المتعددة -->
             <div id="liveMatchesContainer" class="live-matches-grid" style="display:none;"></div>
 
@@ -1083,6 +1126,16 @@
         <div id="settingsTab" class="tab-content">
             <div class="card" id="adminSection" style="display:none;">
                 <h3>⚙️ لوحة تحكم المشرف (إياد)</h3>
+
+                <!-- إنهاء البطولة والتراجع -->
+                <div style="background:rgba(239, 68, 68, 0.15); border:1.5px solid #ef4444; padding:10px; border-radius:10px; margin-bottom:12px;">
+                    <p style="font-size:12px; font-weight:bold; color:#ef4444; margin-bottom:4px;">🏆 نهاية البطولة وتتويج البطل:</p>
+                    <p style="font-size:10px; color:var(--text-sub); margin-bottom:6px;">عند إنهاء البطولة سيظهر الفائز الأول بالتاج والكأس والألعاب النارية للجميع:</p>
+                    <div style="display:flex; gap:6px;">
+                        <button id="btnEndTournament" onclick="toggleTournamentEnd(true)" style="background:linear-gradient(135deg, #ef4444, #b91c1c); color:#fff; font-size:12px; padding:8px;">🏆 إنهاء البطولة وتتويج البطل 🎉</button>
+                        <button id="btnResetTournament" onclick="toggleTournamentEnd(false)" style="background:#334155; color:#fff; font-size:12px; padding:8px; display:none;">🔄 التراجع عن إنهاء البطولة (إعادة الفتح)</button>
+                    </div>
+                </div>
 
                 <!-- إضافة / إزالة الأوسمة يدوياً -->
                 <div style="background:rgba(245, 158, 11, 0.1); border:1px solid var(--primary-accent); padding:10px; border-radius:10px; margin-bottom:12px;">
@@ -1354,6 +1407,7 @@
         let grandPredictionsData = {};
         let tournamentKnockoutData = {};
         let isGrandLocked = false;
+        let isTournamentEndedGlobal = false;
         let currentLeader = null;
         let activeEditingGroup = 'A';
         let editModeMatchesMap = {};
@@ -1490,6 +1544,7 @@
             listenToProfiles();
             listenToTournamentData();
             listenToGrandPredictions();
+            listenToTournamentEnd();
             loadMyProfile();
         }
 
@@ -1639,6 +1694,75 @@
                 requestAnimationFrame(animate);
             }
             animate();
+        }
+
+        // ---------- إدارة إنهاء البطولة والألعاب النارية ----------
+        function listenToTournamentEnd() {
+            db.ref('tournamentEnded').on('value', (snap) => {
+                isTournamentEndedGlobal = !!snap.val();
+                updateLeaderboard();
+                updateAdminEndButtons();
+                if (isTournamentEndedGlobal) {
+                    triggerFireworks();
+                }
+            });
+        }
+
+        function toggleTournamentEnd(status) {
+            if (currentUser !== 'eyad') return;
+            if (status) {
+                if (confirm('هل أنت متأكد من إنهاء البطولة وتتويج الفائز بالمركز الأول؟ 🏆🎉')) {
+                    db.ref('tournamentEnded').set(true, (err) => {
+                        if (!err) alert('تم إنهاء البطولة وتتويج البطل بنجاح! 🏆🎉');
+                    });
+                }
+            } else {
+                if (confirm('هل تريد التراجع عن إنهاء البطولة وإعادتها للوضع النشط؟ 🔄')) {
+                    db.ref('tournamentEnded').set(false, (err) => {
+                        if (!err) alert('تم التراجع وإعادة فتح البطولة بنجاح! 🔄');
+                    });
+                }
+            }
+        }
+
+        function updateAdminEndButtons() {
+            const btnEnd = document.getElementById('btnEndTournament');
+            const btnReset = document.getElementById('btnResetTournament');
+            if (btnEnd && btnReset) {
+                if (isTournamentEndedGlobal) {
+                    btnEnd.style.display = 'none';
+                    btnReset.style.display = 'block';
+                } else {
+                    btnEnd.style.display = 'block';
+                    btnReset.style.display = 'none';
+                }
+            }
+        }
+
+        function triggerFireworks() {
+            if (typeof confetti === 'function') {
+                const duration = 4 * 1000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 7,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0, y: 0.7 }
+                    });
+                    confetti({
+                        particleCount: 7,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1, y: 0.7 }
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            }
         }
 
         // ---------- إدارة الأوسمة اليدوية ----------
@@ -2640,6 +2764,18 @@
                 leaderOption.disabled = (currentLeader !== currentUser);
             }
 
+            // لافتة الفائز عند إنهاء البطولة
+            const winnerBanner = document.getElementById('tournamentWinnerBanner');
+            const winnerNameEl = document.getElementById('winnerBannerName');
+            if (isTournamentEndedGlobal && usersArr.length > 0) {
+                if (winnerBanner && winnerNameEl) {
+                    winnerBanner.style.display = 'block';
+                    winnerNameEl.innerHTML = `👑 🏆 ${usersArr[0].name} 🏆 👑`;
+                }
+            } else {
+                if (winnerBanner) winnerBanner.style.display = 'none';
+            }
+
             usersArr.forEach((u, idx) => {
                 const rank = idx + 1;
                 const avatar = u.data.avatar || 'https://via.placeholder.com/36';
@@ -2692,14 +2828,21 @@
 
                 let ptsBadgeHtml = u.livePoints > 0 ? `<span class="points-delta-badge delta-plus" style="font-size:10px; margin-right:3px;">+${u.livePoints}</span>` : '';
 
+                // زخرفة الفائز بالمركز الأول عند إنهاء البطولة
+                const isChampion = (idx === 0 && isTournamentEndedGlobal);
+                const rowClass = isChampion ? 'champion-glow-row' : '';
+                const decoratedName = isChampion 
+                    ? `<span class="champion-decorated-name">👑 🏆 ${u.name} 🏆 👑</span>` 
+                    : u.name;
+
                 leaderboardBody.innerHTML += `
-                    <tr>
+                    <tr class="${rowClass}">
                         <td style="font-weight:bold; font-size:15px;">${rankBadge} ${rank}</td>
                         <td class="user-cell" onclick="openMemberCard('${u.key}')">
                             <div class="user-main-info">
                                 <img src="${avatar}" class="user-table-avatar" alt="Avatar">
                                 <div>
-                                    <div style="font-weight:bold; color:var(--text-main); font-size:14px;">${u.name} ${badgesHtml} <span style="font-size:11px; color:var(--text-sub);">${nickname}</span></div>
+                                    <div style="font-weight:bold; color:var(--text-main); font-size:14px;">${decoratedName} ${badgesHtml} <span style="font-size:11px; color:var(--text-sub);">${nickname}</span></div>
                                 </div>
                             </div>
                             ${grandSummaryHtml}
