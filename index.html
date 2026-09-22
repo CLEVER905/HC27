@@ -11,7 +11,17 @@
 
     <style>
         :root {
-            --bg-color: #000000;
+            --bg-color: #0a0f1d;
+            --card-bg: #151d2a;
+            --border-color: #26334d;
+            --primary-accent: #f59e0b;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --header-bg: #151d2a;
+        }
+
+        body.theme-gold {
+            --bg-color: #0a0f1d;
             --card-bg: #151d2a;
             --border-color: #26334d;
             --primary-accent: #f59e0b;
@@ -33,36 +43,40 @@
         body.theme-snow {
             --bg-color: #081226;
             --card-bg: #0f1d36;
-            --border-color: #38bdf8;
+            --border-color: #1e3a8a;
             --primary-accent: #38bdf8;
             --text-main: #f8fafc;
+            --text-sub: #94a3b8;
             --header-bg: #0f1d36;
         }
 
         body.theme-volcano {
             --bg-color: #180505;
             --card-bg: #2a0b0b;
-            --border-color: #991b1b;
+            --border-color: #7f1d1d;
             --primary-accent: #ef4444;
             --text-main: #fef2f2;
+            --text-sub: #fca5a5;
             --header-bg: #2a0b0b;
         }
 
         body.theme-saudi {
             --bg-color: #022018;
             --card-bg: #04382a;
-            --border-color: #10b981;
+            --border-color: #065f46;
             --primary-accent: #34d399;
             --text-main: #ecfdf5;
+            --text-sub: #6ee7b7;
             --header-bg: #04382a;
         }
 
         body.theme-leader {
             --bg-color: #160429;
             --card-bg: #280a47;
-            --border-color: #c084fc;
+            --border-color: #581c87;
             --primary-accent: #facc15;
             --text-main: #faf5ff;
+            --text-sub: #d8b4fe;
             --header-bg: #280a47;
         }
 
@@ -71,7 +85,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            transition: background-color 0.3s, border-color 0.3s;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
         }
 
         body {
@@ -175,14 +189,14 @@
             border-radius: 10px;
             border: 1px solid var(--border-color);
             background-color: rgba(255, 255, 255, 0.05);
-            color: #fff;
+            color: var(--text-main);
             font-size: 14px;
             outline: none;
         }
 
         select option {
-            background-color: #121212;
-            color: #fff;
+            background-color: var(--card-bg);
+            color: var(--text-main);
         }
 
         button {
@@ -541,7 +555,7 @@
         .champion-name {
             font-size: 18px;
             font-weight: bold;
-            color: #fff;
+            color: var(--primary-accent);
             margin-top: 4px;
         }
 
@@ -584,10 +598,11 @@
             color: var(--text-sub);
             margin-top: 4px;
             background: rgba(255,255,255,0.04);
-            padding: 2px 6px;
+            padding: 3px 7px;
             border-radius: 6px;
             border: 1px solid var(--border-color);
             width: 100%;
+            line-height: 1.4;
         }
 
         .user-table-avatar {
@@ -764,7 +779,7 @@
                 </table>
             </div>
 
-            <!-- كارت إحصائيات المتسابقين الكبرى أسفل الترتيب -->
+            <!-- كارت إحصائيات المتسابقين الكبرى -->
             <div class="card">
                 <h3>📊 إحصائيات المتسابقين</h3>
                 <div class="stats-grid" id="competitorsStatsGrid">
@@ -948,27 +963,27 @@
                 </div>
             </div>
 
-            <!-- كارت التوقعات الكبرى خيارات بدلاً من الكتابة -->
+            <!-- كارت التوقعات الكبرى -->
             <div class="card">
                 <h3>🏆 التوقعات الكبرى (البطل وطرفا النهائي)</h3>
                 <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;" id="grandPredLockNotice">اختر توقعك بضغطة زر وتأكد قبل الحفظ 🔒</p>
 
                 <label style="font-size:12px; color:var(--primary-accent); font-weight:bold;">👑 توقع بطل البطولة (3 نقاط):</label>
                 <select id="grandChampionSelect">
-                    <option value="">اختر المنتخب البطل...</option>
+                    <option value="">اختر المنتخب...</option>
                 </select>
 
                 <div style="display:flex; gap:8px; margin-top:8px;">
                     <div style="flex:1;">
                         <label style="font-size:11px; color:var(--primary-accent); font-weight:bold;">⚔️ طرف النهائي الأول (3 نقاط كلياً):</label>
-                        <select id="grandFinalist1Select">
-                            <option value="">اختر الطرف الأول...</option>
+                        <select id="grandFinalist1Select" onchange="validateFinalists()">
+                            <option value="">اختر المنتخب...</option>
                         </select>
                     </div>
                     <div style="flex:1;">
                         <label style="font-size:11px; color:var(--primary-accent); font-weight:bold;">⚔️ طرف النهائي الثاني:</label>
-                        <select id="grandFinalist2Select">
-                            <option value="">اختر الطرف الثاني...</option>
+                        <select id="grandFinalist2Select" onchange="validateFinalists()">
+                            <option value="">اختر المنتخب...</option>
                         </select>
                     </div>
                 </div>
@@ -1000,7 +1015,7 @@
                     <button onclick="saveOfficialGrandResults()" style="margin-top:6px; font-size:12px; background:#10b981; color:#000;">اعتماد النتائج وإضافة النقاط كلياً 🏆</button>
                 </div>
 
-                <!-- ج) تعديل النقاط والإحصائيات يدوياً من المشرف فقط -->
+                <!-- ج) تعديل النقاط والإحصائيات يدوياً من المشرف -->
                 <div style="background:rgba(255, 255, 255, 0.04); border:1px solid var(--primary-accent); padding:10px; border-radius:10px; margin-bottom:12px;">
                     <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🛠️ الخصم والزيادة اليدوية للنقاط (احتياطي للمشرف):</p>
                     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-top:6px;">
@@ -1077,12 +1092,12 @@
             <div class="card">
                 <h3>🎨 ستايل وثيم التطبيق</h3>
                 <select id="themeSelect" onchange="changeTheme(this.value)">
-                    <option value="theme-gold">🏆 ذهبي وأسود (أساسي)</option>
-                    <option value="theme-classic">🕶️ كلاسيك ثيم (داكن هادئ)</option>
-                    <option value="theme-snow">❄️ شتوي ثلجي</option>
-                    <option value="theme-volcano">🌋 ناري بركاني</option>
-                    <option value="theme-saudi">🇸🇦 دعم المنتخب السعودي</option>
-                    <option value="theme-leader" id="leaderThemeOption" disabled>👑 ثيم المتصدر (خاص بالمركز الأول)</option>
+                    <option value="theme-gold">🏆 ذهبي وأسود (سادة)</option>
+                    <option value="theme-classic">🕶️ كلاسيك ثيم (سادة داكن)</option>
+                    <option value="theme-snow">❄️ شتوي ثلجي (ثلج متساقط)</option>
+                    <option value="theme-volcano">🌋 ناري بركاني (شرار متصاعد)</option>
+                    <option value="theme-saudi">🇸🇦 دعم المنتخب السعودي (حركة خضراء)</option>
+                    <option value="theme-leader" id="leaderThemeOption" disabled>👑 ثيم المتصدر (كرات ذهبية متحركة)</option>
                 </select>
             </div>
 
@@ -1293,6 +1308,7 @@
         let editModeMatchesMap = {};
         let teamsListGlobal = ["السعودية", "عمان", "العراق", "الكويت", "قطر", "الإمارات", "البحرين", "اليمن"];
         let adminAdjustmentsGlobal = {};
+        let canvasParticles = [];
 
         function formatArabicDate(dateStr) {
             if (!dateStr) return '';
@@ -1397,7 +1413,15 @@
             document.getElementById('loginOverlay').style.display = 'none';
             document.getElementById('userInfoHeader').innerText = `المستخدم: ${names[user]}`;
             document.getElementById('profileName').innerText = names[user];
+
+            const savedTheme = localStorage.getItem('appTheme') || 'theme-gold';
+            document.body.className = savedTheme;
+            const themeSel = document.getElementById('themeSelect');
+            if (themeSel) themeSel.value = savedTheme;
             
+            const canvas = document.getElementById('bgCanvas');
+            if (canvas) resetParticlesForTheme(canvas.width, canvas.height);
+
             const isAdmin = (user === 'eyad');
             document.getElementById('adminSection').style.display = isAdmin ? 'block' : 'none';
             document.getElementById('adminBtnGroupA').style.display = isAdmin ? 'inline-block' : 'none';
@@ -1440,10 +1464,166 @@
         function changeTheme(themeClass) {
             if (themeClass === 'theme-leader' && currentLeader !== currentUser) {
                 alert('عذراً! ثيم المتصدر متاح فقط لصاحب المركز الأول حالياً 🏆');
-                document.getElementById('themeSelect').value = 'theme-gold';
+                const activeSaved = localStorage.getItem('appTheme') || 'theme-gold';
+                document.getElementById('themeSelect').value = activeSaved;
                 return;
             }
             document.body.className = themeClass;
+            localStorage.setItem('appTheme', themeClass);
+
+            const canvas = document.getElementById('bgCanvas');
+            if (canvas) {
+                resetParticlesForTheme(canvas.width, canvas.height);
+            }
+        }
+
+        // ---------- إدارة الأشكال المتحركة بحسب الثيم ----------
+        function resetParticlesForTheme(w, h) {
+            const theme = document.body.className;
+            canvasParticles = [];
+
+            if (theme === 'theme-gold' || theme === 'theme-classic') {
+                // سادة تماماً بدون أي كرات
+                return;
+            } else if (theme === 'theme-saudi') {
+                // دعم السعودية: أشكال خضراء تتحرك يميناً ويساراً
+                canvasParticles = Array.from({ length: 40 }, () => ({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * 3.5 + 1.5,
+                    dx: (Math.random() - 0.5) * 1.5,
+                    dy: (Math.random() - 0.5) * 0.8,
+                    angle: Math.random() * Math.PI * 2,
+                    speed: Math.random() * 0.04 + 0.01,
+                    o: Math.random() * 0.6 + 0.3
+                }));
+            } else if (theme === 'theme-snow') {
+                // ثلجي: كرات بيضاء تنزل من الأعلى للأسفل
+                canvasParticles = Array.from({ length: 55 }, () => ({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * 3 + 1,
+                    dy: Math.random() * 1.8 + 0.8,
+                    sway: Math.random() * 0.03,
+                    o: Math.random() * 0.7 + 0.3
+                }));
+            } else if (theme === 'theme-volcano') {
+                // بركاني: شرار ونيران تتصاعد من الأسفل للأعلى
+                const colors = ['rgba(239, 68, 68, ', 'rgba(249, 115, 22, ', 'rgba(245, 158, 11, '];
+                canvasParticles = Array.from({ length: 50 }, () => {
+                    const alpha = Math.random() * 0.7 + 0.3;
+                    const colPrefix = colors[Math.floor(Math.random() * colors.length)];
+                    return {
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        r: Math.random() * 2.8 + 1,
+                        dy: Math.random() * 2.0 + 1.0,
+                        color: colPrefix + alpha + ')',
+                        o: alpha
+                    };
+                });
+            } else if (theme === 'theme-leader') {
+                // المتصدر: بنفسجي مع كرات ذهبية متوهجة تطوف عشوائياً
+                canvasParticles = Array.from({ length: 38 }, () => ({
+                    x: Math.random() * w,
+                    y: Math.random() * h,
+                    r: Math.random() * 3.5 + 1.5,
+                    dx: (Math.random() - 0.5) * 1.1,
+                    dy: (Math.random() - 0.5) * 1.1,
+                    o: Math.random() * 0.8 + 0.3
+                }));
+            }
+        }
+
+        function initCanvas() {
+            const canvas = document.getElementById('bgCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+                resetParticlesForTheme(width, height);
+            });
+
+            resetParticlesForTheme(width, height);
+
+            function animate() {
+                ctx.clearRect(0, 0, width, height);
+                const currentTheme = document.body.className;
+
+                if (currentTheme === 'theme-gold' || currentTheme === 'theme-classic') {
+                    // بدون كرات خلفية
+                } else if (currentTheme === 'theme-saudi') {
+                    // حركة خضراء تتأرجح يميناً ويساراً
+                    canvasParticles.forEach(p => {
+                        p.angle += p.speed;
+                        p.x += Math.sin(p.angle) * 1.2 + p.dx;
+                        p.y += p.dy;
+
+                        if (p.x < -10) p.x = width + 10;
+                        if (p.x > width + 10) p.x = -10;
+                        if (p.y < -10) p.y = height + 10;
+                        if (p.y > height + 10) p.y = -10;
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(52, 211, 153, ${p.o})`;
+                        ctx.fill();
+                    });
+                } else if (currentTheme === 'theme-snow') {
+                    // تساقط الثلج للأسرع من الأعلى إلى الأسفل
+                    canvasParticles.forEach(p => {
+                        p.y += p.dy;
+                        p.x += Math.sin(p.y * 0.02) * 0.6;
+
+                        if (p.y > height + 10) {
+                            p.y = -10;
+                            p.x = Math.random() * width;
+                        }
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(255, 255, 255, ${p.o})`;
+                        ctx.fill();
+                    });
+                } else if (currentTheme === 'theme-volcano') {
+                    // الشرار المتصاعد من الأسفل إلى الأعلى
+                    canvasParticles.forEach(p => {
+                        p.y -= p.dy;
+                        p.x += Math.sin(p.y * 0.03) * 0.8;
+
+                        if (p.y < -10) {
+                            p.y = height + 10;
+                            p.x = Math.random() * width;
+                        }
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color || `rgba(239, 68, 68, ${p.o})`;
+                        ctx.fill();
+                    });
+                } else if (currentTheme === 'theme-leader') {
+                    // كرات ذهبية متحركة بمرونة
+                    canvasParticles.forEach(p => {
+                        p.x += p.dx;
+                        p.y += p.dy;
+
+                        if (p.x < 0 || p.x > width) p.dx *= -1;
+                        if (p.y < 0 || p.y > height) p.dy *= -1;
+
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(250, 204, 21, ${p.o})`;
+                        ctx.fill();
+                    });
+                }
+
+                requestAnimationFrame(animate);
+            }
+            animate();
         }
 
         // ---------- قائمة المنتخبات المشاركة ----------
@@ -1488,7 +1668,7 @@
             });
         }
 
-        // ---------- تعديل المشرف اليدوي للنقاط والإحصائيات ----------
+        // ---------- تعديل المشرف اليدوي ----------
         function listenToAdminAdjustments() {
             db.ref('adminAdjustments').on('value', (snap) => {
                 adminAdjustmentsGlobal = snap.val() || {};
@@ -1701,7 +1881,7 @@
             });
         }
 
-        // ---------- وظائف الصور والملف الشخصي ----------
+        // ---------- الصور والملف الشخصي ----------
         function processImageFile(fileInput, maxWidth = 900) {
             return new Promise((resolve) => {
                 if (!fileInput.files || !fileInput.files[0]) return resolve(null);
@@ -1840,7 +2020,16 @@
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ---------- إدارة التوقعات الكبرى (البطل والنهائي) ----------
+        // ---------- إدارة التوقعات الكبرى والتأكد من عدم التكرار ----------
+        function validateFinalists() {
+            const f1 = document.getElementById('grandFinalist1Select').value;
+            const f2 = document.getElementById('grandFinalist2Select').value;
+            if (f1 && f2 && f1 === f2) {
+                alert('❌ لا يمكنك اختيار نفس المنتخب كطرف أول وطرف ثاني للمباراة النهائية!');
+                document.getElementById('grandFinalist2Select').value = '';
+            }
+        }
+
         function listenToGrandPredictions() {
             db.ref('grandLock').on('value', (snap) => {
                 isGrandLocked = !!snap.val();
@@ -1867,6 +2056,7 @@
                     fin1Inp.disabled = false;
                     fin2Inp.disabled = false;
                 }
+                updateLeaderboard();
             });
 
             db.ref('grandPredictions').on('value', (snap) => {
@@ -1886,7 +2076,7 @@
             const f2 = document.getElementById('grandFinalist2Select').value;
 
             if (!champ || !f1 || !f2) return alert('يرجى اختيار البطل وطرفي النهائي كاملاً!');
-            if (f1 === f2) return alert('لا يمكنك اختيار نفس المنتخب في طرفي النهائي!');
+            if (f1 === f2) return alert('❌ لا يمكنك اختيار نفس المنتخب في طرفي النهائي!');
 
             db.ref(`grandPredictions/${currentUser}`).set({
                 champion: champ,
@@ -1914,11 +2104,11 @@
         function toggleGrandLock() {
             if (currentUser !== 'eyad') return;
             db.ref('grandLock').set(!isGrandLocked, (err) => {
-                if (!err) alert(isGrandLocked ? 'تم فتح التوقعات الكبرى' : 'تم قفل التوقعات الكبرى رسمياً!');
+                if (!err) alert(!isGrandLocked ? 'تم قفل التوقعات الكبرى وإظهارها بالجدول! 🔒' : 'تم فتح التوقعات الكبرى وإخفائها من الجدول! 🔓');
             });
         }
 
-        // ---------- إدارة المباريات والتوقعات والقفل بالأيقونة ----------
+        // ---------- إدارة المباريات والتوقعات ----------
         function addMatchToCloud() {
             const t1 = document.getElementById('team1').value.trim();
             const t2 = document.getElementById('team2').value.trim();
@@ -2380,10 +2570,22 @@
                     }
                 }
 
+                // إظهار التوقع بالجدول فقط إذا كانت التوقعات الكبرى مغلقة رسمياً 🔒
                 const userGrand = grandPredictionsData[u.key];
-                let grandSummary = 'لم يتوقع بعد';
-                if (userGrand && userGrand.champion) {
-                    grandSummary = `البطل: ${userGrand.champion}`;
+                let grandSummaryHtml = '';
+
+                if (!isGrandLocked) {
+                    grandSummaryHtml = `<div class="user-grand-sub" style="color:var(--text-sub); opacity:0.8;">🔒 التوقعات الكبرى مفتوحة (مخفية)</div>`;
+                } else {
+                    if (userGrand && userGrand.champion && userGrand.champion.trim() !== '') {
+                        let finalistsText = '';
+                        if (userGrand.finalist1 && userGrand.finalist2) {
+                            finalistsText = ` | النهائي: ${userGrand.finalist1} vs ${userGrand.finalist2}`;
+                        }
+                        grandSummaryHtml = `<div class="user-grand-sub" style="color:var(--primary-accent); font-weight:bold;">🏆 البطل: ${userGrand.champion}${finalistsText}</div>`;
+                    } else {
+                        grandSummaryHtml = `<div class="user-grand-sub" style="color:#ef4444;">لم يتوقع بعد 🏆</div>`;
+                    }
                 }
 
                 leaderboardBody.innerHTML += `
@@ -2397,7 +2599,7 @@
                                     <div style="font-size:11px; color:var(--primary-accent);">🎯 ${u.exact} | 🟠 ${u.correct} | 🔴 ${u.wrong}</div>
                                 </div>
                             </div>
-                            <div class="user-grand-sub">🏆 ${grandSummary}</div>
+                            ${grandSummaryHtml}
                         </td>
                         <td><span style="font-weight:bold; font-size:13px; color:var(--primary-accent);">${livePredText}</span></td>
                         <td style="font-weight:bold; font-size:18px; color:var(--primary-accent);">${u.points}</td>
@@ -2470,46 +2672,6 @@
                 badge.innerText = 'متاحة 🟢';
                 badge.className = 'card-badge-available';
             }
-        }
-
-        // ---------- خلفية الأشكال المتحركة (Canvas) ----------
-        function initCanvas() {
-            const canvas = document.getElementById('bgCanvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            let width = canvas.width = window.innerWidth;
-            let height = canvas.height = window.innerHeight;
-
-            window.addEventListener('resize', () => {
-                width = canvas.width = window.innerWidth;
-                height = canvas.height = window.innerHeight;
-            });
-
-            const particles = Array.from({ length: 35 }, () => ({
-                x: Math.random() * width,
-                y: Math.random() * height,
-                r: Math.random() * 2 + 1,
-                dx: (Math.random() - 0.5) * 0.6,
-                dy: (Math.random() - 0.5) * 0.6,
-                o: Math.random() * 0.5 + 0.2
-            }));
-
-            function animate() {
-                ctx.clearRect(0, 0, width, height);
-                particles.forEach(p => {
-                    p.x += p.dx;
-                    p.y += p.dy;
-                    if (p.x < 0 || p.x > width) p.dx *= -1;
-                    if (p.y < 0 || p.y > height) p.dy *= -1;
-
-                    ctx.beginPath();
-                    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(245, 158, 11, ${p.o})`;
-                    ctx.fill();
-                });
-                requestAnimationFrame(animate);
-            }
-            animate();
         }
 
         // ---------- بدء تشغيل التطبيق ----------
