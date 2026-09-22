@@ -105,6 +105,52 @@
             z-index: 1;
         }
 
+        /* شريط التنبيه الذكي للمباريات القادمة */
+        .smart-reminder-banner {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25));
+            border: 1px solid var(--primary-accent);
+            color: var(--text-main);
+            padding: 10px 14px;
+            margin: 10px 15px 0 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
+            animation: pulseBanner 2s infinite alternate;
+            position: relative;
+            z-index: 10;
+        }
+
+        @keyframes pulseBanner {
+            0% { border-color: var(--primary-accent); }
+            100% { border-color: #ef4444; }
+        }
+
+        .smart-reminder-banner button {
+            width: auto;
+            padding: 4px 12px;
+            font-size: 11px;
+            margin: 0;
+        }
+
+        /* وسم بطل الجولة */
+        .mvp-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #000;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            margin-right: 5px;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+            vertical-align: middle;
+        }
+
         #loginOverlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -745,6 +791,14 @@
         <p id="userInfoHeader">تسجيل الدخول مطلوب</p>
     </header>
 
+    <!-- شريط التنبيه الذكي للمباريات القادمة (Smart Reminder) -->
+    <div id="smartReminderBanner" class="smart-reminder-banner" style="display: none;">
+        <div>
+            <b>⏰ تنبيه ذكي:</b> لديك مباراة تبدأ خلال أقل من 24 ساعة ولم تتوقعها بعد!
+        </div>
+        <button onclick="goToUnpredictedMatch()">توقع الآن ⚽</button>
+    </div>
+
     <div class="container">
         <!-- 1. صفحة المباريات -->
         <div id="matchesTab" class="tab-content active">
@@ -996,6 +1050,17 @@
         <div id="settingsTab" class="tab-content">
             <div class="card" id="adminSection" style="display:none;">
                 <h3>⚙️ لوحة تحكم المشرف (إياد)</h3>
+
+                <!-- إضافة / إزالة وسم بطل الجولة يدوي للتجربة -->
+                <div style="background:rgba(245, 158, 11, 0.1); border:1px solid var(--primary-accent); padding:10px; border-radius:10px; margin-bottom:12px;">
+                    <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🎖️ التحكم اليدوي بوسم (بطل الجولة - Gameweek MVP):</p>
+                    <p style="font-size:10px; color:var(--text-sub); margin-bottom:6px;">يمكنك تجربة إضافة الوسم لنفسك أو لأي متسابق وإزالته في أي وقت بدون انتظار:</p>
+                    <div style="display:flex; gap:6px;">
+                        <button onclick="toggleMvpBadgeManual('eyad')" style="font-size:11px; padding:6px; background:#334155; color:#fff;">إياد 🎖️</button>
+                        <button onclick="toggleMvpBadgeManual('mohammed')" style="font-size:11px; padding:6px; background:#334155; color:#fff;">محمد 🎖️</button>
+                        <button onclick="toggleMvpBadgeManual('saud')" style="font-size:11px; padding:6px; background:#334155; color:#fff;">سعود 🎖️</button>
+                    </div>
+                </div>
 
                 <!-- أ) تحديد المنتخبات المشاركة -->
                 <div style="background:rgba(255, 255, 255, 0.04); border:1px solid var(--border-color); padding:10px; border-radius:10px; margin-bottom:12px;">
@@ -1308,6 +1373,7 @@
         let editModeMatchesMap = {};
         let teamsListGlobal = ["السعودية", "عمان", "العراق", "الكويت", "قطر", "الإمارات", "البحرين", "اليمن"];
         let adminAdjustmentsGlobal = {};
+        let manualMvpBadges = {};
         let canvasParticles = [];
 
         function formatArabicDate(dateStr) {
@@ -1430,6 +1496,7 @@
 
             listenToTeams();
             listenToAdminAdjustments();
+            listenToManualMvpBadges();
             listenToMatches();
             listenToPredictions();
             listenToLiveMatch();
@@ -1458,7 +1525,7 @@
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
-            element.classList.add('active');
+            if (element) element.classList.add('active');
         }
 
         function changeTheme(themeClass) {
@@ -1477,16 +1544,14 @@
             }
         }
 
-        // ---------- إدارة الأشكال المتحركة بحسب الثيم ----------
+        // ---------- إدارة الأشكال المتحركة ----------
         function resetParticlesForTheme(w, h) {
             const theme = document.body.className;
             canvasParticles = [];
 
             if (theme === 'theme-gold' || theme === 'theme-classic') {
-                // سادة تماماً بدون أي كرات
                 return;
             } else if (theme === 'theme-saudi') {
-                // دعم السعودية: أشكال خضراء تتحرك يميناً ويساراً
                 canvasParticles = Array.from({ length: 40 }, () => ({
                     x: Math.random() * w,
                     y: Math.random() * h,
@@ -1498,7 +1563,6 @@
                     o: Math.random() * 0.6 + 0.3
                 }));
             } else if (theme === 'theme-snow') {
-                // ثلجي: كرات بيضاء تنزل من الأعلى للأسفل
                 canvasParticles = Array.from({ length: 55 }, () => ({
                     x: Math.random() * w,
                     y: Math.random() * h,
@@ -1508,7 +1572,6 @@
                     o: Math.random() * 0.7 + 0.3
                 }));
             } else if (theme === 'theme-volcano') {
-                // بركاني: شرار ونيران تتصاعد من الأسفل للأعلى
                 const colors = ['rgba(239, 68, 68, ', 'rgba(249, 115, 22, ', 'rgba(245, 158, 11, '];
                 canvasParticles = Array.from({ length: 50 }, () => {
                     const alpha = Math.random() * 0.7 + 0.3;
@@ -1523,7 +1586,6 @@
                     };
                 });
             } else if (theme === 'theme-leader') {
-                // المتصدر: بنفسجي مع كرات ذهبية متوهجة تطوف عشوائياً
                 canvasParticles = Array.from({ length: 38 }, () => ({
                     x: Math.random() * w,
                     y: Math.random() * h,
@@ -1554,10 +1616,7 @@
                 ctx.clearRect(0, 0, width, height);
                 const currentTheme = document.body.className;
 
-                if (currentTheme === 'theme-gold' || currentTheme === 'theme-classic') {
-                    // بدون كرات خلفية
-                } else if (currentTheme === 'theme-saudi') {
-                    // حركة خضراء تتأرجح يميناً ويساراً
+                if (currentTheme === 'theme-saudi') {
                     canvasParticles.forEach(p => {
                         p.angle += p.speed;
                         p.x += Math.sin(p.angle) * 1.2 + p.dx;
@@ -1574,7 +1633,6 @@
                         ctx.fill();
                     });
                 } else if (currentTheme === 'theme-snow') {
-                    // تساقط الثلج للأسرع من الأعلى إلى الأسفل
                     canvasParticles.forEach(p => {
                         p.y += p.dy;
                         p.x += Math.sin(p.y * 0.02) * 0.6;
@@ -1590,7 +1648,6 @@
                         ctx.fill();
                     });
                 } else if (currentTheme === 'theme-volcano') {
-                    // الشرار المتصاعد من الأسفل إلى الأعلى
                     canvasParticles.forEach(p => {
                         p.y -= p.dy;
                         p.x += Math.sin(p.y * 0.03) * 0.8;
@@ -1606,7 +1663,6 @@
                         ctx.fill();
                     });
                 } else if (currentTheme === 'theme-leader') {
-                    // كرات ذهبية متحركة بمرونة
                     canvasParticles.forEach(p => {
                         p.x += p.dx;
                         p.y += p.dy;
@@ -1624,6 +1680,22 @@
                 requestAnimationFrame(animate);
             }
             animate();
+        }
+
+        // ---------- إضافة التحكم بـ MVP اليدوي ----------
+        function listenToManualMvpBadges() {
+            db.ref('manualMvpBadges').on('value', (snap) => {
+                manualMvpBadges = snap.val() || {};
+                updateLeaderboard();
+            });
+        }
+
+        function toggleMvpBadgeManual(uKey) {
+            if (currentUser !== 'eyad') return;
+            const currentVal = !!manualMvpBadges[uKey];
+            db.ref(`manualMvpBadges/${uKey}`).set(!currentVal, (err) => {
+                if (!err) alert(`تم ${!currentVal ? 'إضافة' : 'إزالة'} وسم بطل الجولة يدوياً للمتسابق (${names[uKey]})! 🎖️`);
+            });
         }
 
         // ---------- قائمة المنتخبات المشاركة ----------
@@ -1950,7 +2022,7 @@
 
         function openMemberCard(uKey) {
             const uData = allUsersGlobalData[uKey] || {};
-            const stats = calculatePointsAndStats()[uKey] || { exact: 0, correct: 0, wrong: 0 };
+            const stats = calculatePointsAndStats().stats[uKey] || { exact: 0, correct: 0, wrong: 0 };
 
             document.getElementById('viewMemberName').innerText = names[uKey] || uKey;
             document.getElementById('viewMemberNickname').innerText = uData.nickname ? `@${uData.nickname}` : '@اللقب';
@@ -2020,7 +2092,7 @@
 
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        // ---------- إدارة التوقعات الكبرى والتأكد من عدم التكرار ----------
+        // ---------- إدارة التوقعات الكبرى ----------
         function validateFinalists() {
             const f1 = document.getElementById('grandFinalist1Select').value;
             const f2 = document.getElementById('grandFinalist2Select').value;
@@ -2108,6 +2180,38 @@
             });
         }
 
+        // ---------- تنبيهات وإشعارات المباريات الذكية ----------
+        function checkSmartReminders() {
+            const banner = document.getElementById('smartReminderBanner');
+            if (!banner || !currentUser) return;
+
+            let hasUrgentUnpredicted = false;
+            const now = Date.now();
+            const oneDayMs = 24 * 60 * 60 * 1000;
+
+            Object.keys(globalMatches).forEach(mId => {
+                const match = globalMatches[mId];
+                if (match.status === 'upcoming' && match.matchDate) {
+                    let matchTimeMs = new Date(match.matchDate + (match.matchTime ? 'T' + match.matchTime : 'T00:00:00')).getTime();
+                    const diff = matchTimeMs - now;
+
+                    // أقل من 24 ساعة ومتبقي وقت
+                    if (diff > 0 && diff <= oneDayMs) {
+                        const myPred = globalPredictions[mId]?.[currentUser];
+                        if (!myPred || myPred.score1 === undefined || myPred.score1 === '') {
+                            hasUrgentUnpredicted = true;
+                        }
+                    }
+                }
+            });
+
+            banner.style.display = hasUrgentUnpredicted ? 'flex' : 'none';
+        }
+
+        function goToUnpredictedMatch() {
+            switchTab('matchesTab', document.querySelectorAll('.nav-item')[0]);
+        }
+
         // ---------- إدارة المباريات والتوقعات ----------
         function addMatchToCloud() {
             const t1 = document.getElementById('team1').value.trim();
@@ -2164,11 +2268,21 @@
         }
 
         function listenToMatches() {
-            db.ref('matches').on('value', (snap) => { globalMatches = snap.val() || {}; renderMatches(); updateLeaderboard(); });
+            db.ref('matches').on('value', (snap) => { 
+                globalMatches = snap.val() || {}; 
+                renderMatches(); 
+                updateLeaderboard(); 
+                checkSmartReminders();
+            });
         }
 
         function listenToPredictions() {
-            db.ref('predictions').on('value', (snap) => { globalPredictions = snap.val() || {}; renderMatches(); updateLeaderboard(); });
+            db.ref('predictions').on('value', (snap) => { 
+                globalPredictions = snap.val() || {}; 
+                renderMatches(); 
+                updateLeaderboard(); 
+                checkSmartReminders();
+            });
         }
 
         function toggleMatchEditMode(matchId) {
@@ -2390,6 +2504,7 @@
                 if (!err) {
                     editModeMatchesMap[matchId] = false;
                     alert('تم حفظ وتأكيد توقعك بنجاح! 🔒');
+                    checkSmartReminders();
                 }
             });
         }
@@ -2452,13 +2567,19 @@
         }
 
         function calculatePointsAndStats() {
-            const result = {
+            const resultStats = {
                 eyad: { points: 0, exact: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0 },
                 mohammed: { points: 0, exact: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0 },
                 saud: { points: 0, exact: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0 }
             };
 
+            const last3MatchPts = { eyad: 0, mohammed: 0, saud: 0 };
+
             const finishedMatchIds = Object.keys(globalMatches).filter(mId => globalMatches[mId].status === 'finished');
+
+            // ترتيب المباريات المنتهية بحسب التاريخ لتحديد آخر 3 مباريات
+            finishedMatchIds.sort((a,b) => (globalMatches[a].createdAt || 0) - (globalMatches[b].createdAt || 0));
+            const last3MatchIds = finishedMatchIds.slice(-3);
 
             finishedMatchIds.forEach(mId => {
                 const match = globalMatches[mId];
@@ -2476,21 +2597,26 @@
                         const isCorrect = !isExact && ((p1 > p2 && a1 > a2) || (p1 < p2 && a1 < a2) || (p1 === p2 && a1 === a2));
 
                         if (isExact) {
-                            result[uKey].exact++;
-                            result[uKey].streak++;
+                            resultStats[uKey].exact++;
+                            resultStats[uKey].streak++;
                         } else if (isCorrect) {
-                            result[uKey].correct++;
-                            result[uKey].streak++;
+                            resultStats[uKey].correct++;
+                            resultStats[uKey].streak++;
                         } else {
-                            result[uKey].wrong++;
-                            result[uKey].streak = 0;
+                            resultStats[uKey].wrong++;
+                            resultStats[uKey].streak = 0;
                         }
 
-                        if (result[uKey].streak > result[uKey].maxStreak) {
-                            result[uKey].maxStreak = result[uKey].streak;
+                        if (resultStats[uKey].streak > resultStats[uKey].maxStreak) {
+                            resultStats[uKey].maxStreak = resultStats[uKey].streak;
                         }
                     }
-                    result[uKey].points += pts;
+                    resultStats[uKey].points += pts;
+
+                    // حساب نقاط آخر 3 مباريات لوسم MVP
+                    if (last3MatchIds.includes(mId)) {
+                        last3MatchPts[uKey] += pts;
+                    }
                 });
             });
 
@@ -2501,14 +2627,14 @@
                         const userGrand = grandPredictionsData[uKey];
                         if (userGrand) {
                             if (official.champion && userGrand.champion === official.champion) {
-                                result[uKey].points += 3;
+                                resultStats[uKey].points += 3;
                             }
                             const offFinalists = [official.finalist1, official.finalist2].filter(Boolean);
                             if (offFinalists.length === 2 && userGrand.finalist1 && userGrand.finalist2) {
                                 const userFinalists = [userGrand.finalist1, userGrand.finalist2];
                                 const matchesCount = userFinalists.filter(f => offFinalists.includes(f)).length;
                                 if (matchesCount === 2) {
-                                    result[uKey].points += 3;
+                                    resultStats[uKey].points += 3;
                                 }
                             }
                         }
@@ -2518,15 +2644,32 @@
 
             ['eyad', 'mohammed', 'saud'].forEach(uKey => {
                 if (adminAdjustmentsGlobal[uKey]) {
-                    result[uKey].points += parseInt(adminAdjustmentsGlobal[uKey], 10) || 0;
+                    resultStats[uKey].points += parseInt(adminAdjustmentsGlobal[uKey], 10) || 0;
                 }
             });
 
-            return result;
+            // تحديث مستحقي وسام بطل الجولة (Gameweek MVP) تلقائياً
+            let maxLast3Pts = -1;
+            let mvpWinners = [];
+            if (finishedMatchIds.length > 0) {
+                Object.keys(last3MatchPts).forEach(uKey => {
+                    if (last3MatchPts[uKey] > maxLast3Pts) {
+                        maxLast3Pts = last3MatchPts[uKey];
+                        mvpWinners = [uKey];
+                    } else if (last3MatchPts[uKey] === maxLast3Pts && maxLast3Pts > 0) {
+                        mvpWinners.push(uKey);
+                    }
+                });
+            }
+
+            return { stats: resultStats, mvpWinners: mvpWinners };
         }
 
         function updateLeaderboard() {
-            const stats = calculatePointsAndStats();
+            const calculated = calculatePointsAndStats();
+            const stats = calculated.stats;
+            const autoMvpWinners = calculated.mvpWinners;
+
             const leaderboardBody = document.getElementById('leaderboard');
             if (!leaderboardBody) return;
 
@@ -2557,6 +2700,10 @@
                 const nickname = u.data.nickname ? `@${u.data.nickname}` : '';
                 const rankBadge = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : '🥉');
 
+                // فحص استحقاق وسم بطل الجولة (سواء تلقائي أو يدوي من المشرف)
+                const hasMvpBadge = autoMvpWinners.includes(u.key) || !!manualMvpBadges[u.key];
+                const mvpBadgeHtml = hasMvpBadge ? `<span class="mvp-badge">🎖️ بطل الجولة</span>` : '';
+
                 let livePredText = '-';
                 let liveMatchId = null;
                 Object.keys(globalMatches).forEach(mId => {
@@ -2570,7 +2717,6 @@
                     }
                 }
 
-                // إظهار التوقع بالجدول فقط إذا كانت التوقعات الكبرى مغلقة رسمياً 🔒
                 const userGrand = grandPredictionsData[u.key];
                 let grandSummaryHtml = '';
 
@@ -2595,8 +2741,7 @@
                             <div class="user-main-info">
                                 <img src="${avatar}" class="user-table-avatar" alt="Avatar">
                                 <div>
-                                    <div style="font-weight:bold; color:var(--text-main); font-size:14px;">${u.name} <span style="font-size:11px; color:var(--text-sub);">${nickname}</span></div>
-                                    <div style="font-size:11px; color:var(--primary-accent);">🎯 ${u.exact} | 🟠 ${u.correct} | 🔴 ${u.wrong}</div>
+                                    <div style="font-weight:bold; color:var(--text-main); font-size:14px;">${u.name} ${mvpBadgeHtml} <span style="font-size:11px; color:var(--text-sub);">${nickname}</span></div>
                                 </div>
                             </div>
                             ${grandSummaryHtml}
