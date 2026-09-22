@@ -105,7 +105,6 @@
             z-index: 1;
         }
 
-        /* شريط التنبيه الذكي للمباريات القادمة */
         .smart-reminder-banner {
             background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25));
             border: 1px solid var(--primary-accent);
@@ -118,14 +117,8 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 4px 15px rgba(245, 158, 11, 0.15);
-            animation: pulseBanner 2s infinite alternate;
             position: relative;
             z-index: 10;
-        }
-
-        @keyframes pulseBanner {
-            0% { border-color: var(--primary-accent); }
-            100% { border-color: #ef4444; }
         }
 
         .smart-reminder-banner button {
@@ -135,20 +128,51 @@
             margin: 0;
         }
 
-        /* وسم بطل الجولة */
+        /* حاوية مباريات المباشر المتعددة في صفحة الترتيب */
+        .live-matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .live-match-box {
+            background: linear-gradient(135deg, rgba(239,68,68,0.2), rgba(245,158,11,0.2));
+            border: 1px solid #ef4444;
+            border-radius: 12px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.15);
+        }
+
+        /* الأوسمة */
         .mvp-badge {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: #000;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
-            padding: 2px 6px;
+            padding: 2px 5px;
             border-radius: 6px;
             display: inline-flex;
             align-items: center;
-            gap: 3px;
-            margin-right: 5px;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
+            gap: 2px;
+            margin-right: 3px;
             vertical-align: middle;
+        }
+
+        .diamond-badge {
+            background: linear-gradient(135deg, #38bdf8, #6366f1);
+            color: #fff;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            margin-right: 3px;
+            vertical-align: middle;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.5);
         }
 
         #loginOverlay {
@@ -383,7 +407,6 @@
         .tag-live {
             background: #10b981;
             color: #000;
-            animation: pulse 1.5s infinite;
         }
 
         .tag-finished {
@@ -572,16 +595,6 @@
             position: relative;
         }
 
-        .final-box-container::before {
-            content: "";
-            position: absolute;
-            top: -15px;
-            left: 50%;
-            width: 2px;
-            height: 15px;
-            background: var(--primary-accent);
-        }
-
         .champion-card {
             background: rgba(255, 255, 255, 0.05);
             border: 1.5px solid var(--border-color);
@@ -663,9 +676,9 @@
 
         .pred-badge {
             display: inline-block;
-            padding: 4px 8px;
-            border-radius: 8px;
-            font-size: 12px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 11px;
             font-weight: bold;
         }
 
@@ -748,6 +761,16 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        .badge-explain-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            text-align: right;
+            font-size: 11px;
+        }
     </style>
 </head>
 <body class="theme-gold">
@@ -791,7 +814,7 @@
         <p id="userInfoHeader">تسجيل الدخول مطلوب</p>
     </header>
 
-    <!-- شريط التنبيه الذكي للمباريات القادمة (Smart Reminder) -->
+    <!-- شريط التنبيه الذكي للمباريات القادمة -->
     <div id="smartReminderBanner" class="smart-reminder-banner" style="display: none;">
         <div>
             <b>⏰ تنبيه ذكي:</b> لديك مباراة تبدأ خلال أقل من 24 ساعة ولم تتوقعها بعد!
@@ -812,11 +835,8 @@
 
         <!-- 2. صفحة الترتيب -->
         <div id="standingsTab" class="tab-content">
-            <div id="liveMatchBanner" class="live-match-banner" style="display:none; background: linear-gradient(135deg, rgba(239,68,68,0.25), rgba(245,158,11,0.25)); border: 1px solid #ef4444; border-radius: 12px; padding: 12px; margin-bottom: 15px; text-align: center;">
-                <span style="background: #ef4444; color: white; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: bold;">مباشر الآن 🔴</span>
-                <div id="liveMatchTeams" style="font-size: 14px; margin-top:4px;">- vs -</div>
-                <div id="liveMatchScore" style="font-size: 20px; font-weight: bold; margin: 6px 0; color: #fff;">0 - 0</div>
-            </div>
+            <!-- حاوية مباريات المباشر المتعددة -->
+            <div id="liveMatchesContainer" class="live-matches-grid" style="display:none;"></div>
 
             <div class="card">
                 <h3>🏅 جدول ترتيب المتسابقين</h3>
@@ -825,7 +845,7 @@
                         <tr>
                             <th style="width: 35px;">#</th>
                             <th>المتسابق والتوقع الكلي</th>
-                            <th style="width: 85px;">توقع المباشر</th>
+                            <th style="width: 100px;">التوقع المباشر</th>
                             <th style="width: 75px;">النقاط</th>
                         </tr>
                     </thead>
@@ -854,12 +874,18 @@
                         <div class="stat-val" id="stat_best_streak">-</div>
                     </div>
                 </div>
+
+                <!-- شرح الأوسمة ومن حققها تحت إحصائيات المتسابقين -->
+                <div class="badge-explain-box" style="margin-top:12px;">
+                    <div style="font-weight:bold; color:var(--primary-accent); margin-bottom:4px;">🎖️ سجل الأوسمة والمتاقسة:</div>
+                    <div><b>🎖️ بطل الجولة:</b> أفضل لاعب في آخر 3 مباريات (أكثر لاعب جمع نقاطاً). الأكثر تحقيقاً: <span id="mostMvpUserText" style="color:var(--primary-accent);">-</span></div>
+                    <div style="margin-top:4px;"><b>💎👑 الوسام الألماسي والتاج:</b> لأكثر شخص حقق نقاطاً بعد نهاية البطولة (بدون الكروت والتوقعات الكبرى). الأكثر تحقيقاً: <span id="mostDiamondUserText" style="color:#38bdf8;">-</span></div>
+                </div>
             </div>
         </div>
 
         <!-- 3. صفحة البطولة -->
         <div id="tournamentTab" class="tab-content">
-            <!-- المجموعة أ -->
             <div class="card">
                 <h3>
                     <span>⚽ دوري المجموعات - المجموعة أ</span>
@@ -884,7 +910,6 @@
                 </table>
             </div>
 
-            <!-- المجموعة ب -->
             <div class="card">
                 <h3>
                     <span>⚽ دوري المجموعات - المجموعة ب</span>
@@ -909,7 +934,6 @@
                 </table>
             </div>
 
-            <!-- الأدوار الإقصائية -->
             <div class="card">
                 <h3>
                     <span>🔥 الأدوار الإقصائية</span>
@@ -931,7 +955,7 @@
                         </div>
                     </div>
 
-                    <div class="final-box-container bracket-box">
+                    <div class="final-box-container bracket-box" style="width:100%;">
                         <h4 style="color:#ffffff; font-size:14px;">🏆 النهائي</h4>
                         <div class="bracket-team-row"><span id="fn_t1">متأهل 1</span><span id="fn_s1">-</span></div>
                         <div class="bracket-team-row"><span id="fn_t2">متأهل 2</span><span id="fn_s2">-</span></div>
@@ -945,7 +969,7 @@
             </div>
         </div>
 
-        <!-- 4. صفحة الملف التعريفي والإحصائيات -->
+        <!-- 4. صفحة الملف التعريفي وإحصائيات -->
         <div id="profileTab" class="tab-content">
             <div class="card profile-header-card">
                 <div id="myCoverPhoto" class="cover-photo"></div>
@@ -960,7 +984,7 @@
                 </div>
             </div>
 
-            <!-- كارت الإحصائيات الشاملة -->
+            <!-- كارت الإحصائيات الشاملة والأوسمة -->
             <div class="card">
                 <h3>📊 إحصائياتي والأداء</h3>
                 <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
@@ -984,10 +1008,20 @@
                         <div class="stat-lbl">توقع خاطئ 🔴</div>
                         <div class="stat-val" id="st_wrong">0</div>
                     </div>
+                    <div class="stat-box">
+                        <div class="stat-lbl">الأوسمة الحاصل عليها</div>
+                        <div class="stat-val" id="st_badges_count" style="font-size:12px; color:var(--primary-accent);">0 عادية | 0 أماسية</div>
+                    </div>
+                </div>
+
+                <!-- شرح الأوسمة في الملف الشخصي -->
+                <div class="badge-explain-box">
+                    <div style="font-weight:bold; color:var(--primary-accent); margin-bottom:4px;">💡 دليل الأوسمة وشرحها:</div>
+                    <div><b>🎖️ بطل الجولة:</b> أفضل لاعب في آخر 3 مباريات (أكثر لاعب جمع نقاطاً).</div>
+                    <div style="margin-top:4px;"><b>💎👑 الوسام الألماسي والتاج:</b> لأكثر شخص حقق نقاطاً بعد نهاية البطولة (بدون الكروت والتوقعات الكبرى).</div>
                 </div>
             </div>
 
-            <!-- كارت البطاقات المساعدة المتبقية -->
             <div class="card">
                 <h3>🃏 البطاقات المساعدة (3 بطاقات)</h3>
                 <div class="cards-status-container">
@@ -1017,7 +1051,6 @@
                 </div>
             </div>
 
-            <!-- كارت التوقعات الكبرى -->
             <div class="card">
                 <h3>🏆 التوقعات الكبرى (البطل وطرفا النهائي)</h3>
                 <p style="font-size:11px; color:var(--text-sub); margin-bottom:10px;" id="grandPredLockNotice">اختر توقعك بضغطة زر وتأكد قبل الحفظ 🔒</p>
@@ -1051,25 +1084,28 @@
             <div class="card" id="adminSection" style="display:none;">
                 <h3>⚙️ لوحة تحكم المشرف (إياد)</h3>
 
-                <!-- إضافة / إزالة وسم بطل الجولة يدوي للتجربة -->
+                <!-- إضافة / إزالة الأوسمة يدوياً -->
                 <div style="background:rgba(245, 158, 11, 0.1); border:1px solid var(--primary-accent); padding:10px; border-radius:10px; margin-bottom:12px;">
-                    <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🎖️ التحكم اليدوي بوسم (بطل الجولة - Gameweek MVP):</p>
-                    <p style="font-size:10px; color:var(--text-sub); margin-bottom:6px;">يمكنك تجربة إضافة الوسم لنفسك أو لأي متسابق وإزالته في أي وقت بدون انتظار:</p>
-                    <div style="display:flex; gap:6px;">
+                    <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🎖️ إدارة الأوسمة يدوياً (بطل الجولة & الوسام الألماسي):</p>
+                    <p style="font-size:10px; color:var(--text-sub); margin-bottom:6px;">أضف أو أزل الأوسمة لأي متسابق بضغطة زر:</p>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-bottom:6px;">
                         <button onclick="toggleMvpBadgeManual('eyad')" style="font-size:11px; padding:6px; background:#334155; color:#fff;">إياد 🎖️</button>
                         <button onclick="toggleMvpBadgeManual('mohammed')" style="font-size:11px; padding:6px; background:#334155; color:#fff;">محمد 🎖️</button>
                         <button onclick="toggleMvpBadgeManual('saud')" style="font-size:11px; padding:6px; background:#334155; color:#fff;">سعود 🎖️</button>
                     </div>
+                    <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px;">
+                        <button onclick="toggleDiamondBadgeManual('eyad')" style="font-size:11px; padding:6px; background:#1e3a8a; color:#fff;">إياد 💎👑</button>
+                        <button onclick="toggleDiamondBadgeManual('mohammed')" style="font-size:11px; padding:6px; background:#1e3a8a; color:#fff;">محمد 💎👑</button>
+                        <button onclick="toggleDiamondBadgeManual('saud')" style="font-size:11px; padding:6px; background:#1e3a8a; color:#fff;">سعود 💎👑</button>
+                    </div>
                 </div>
 
-                <!-- أ) تحديد المنتخبات المشاركة -->
                 <div style="background:rgba(255, 255, 255, 0.04); border:1px solid var(--border-color); padding:10px; border-radius:10px; margin-bottom:12px;">
                     <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🚩 إدارة المنتخبات المشاركة بالمسابقة:</p>
-                    <input type="text" id="adminTeamsListInput" placeholder="أدخل المنتخبات مفصولة بـ (-) مثلاً: السعودية-عمان-العراق-الكويت">
+                    <input type="text" id="adminTeamsListInput" placeholder="أدخل المنتخبات مفصولة بـ (-) مثلاً: السعودية-عمان-العراق">
                     <button onclick="saveTeamsListFromAdmin()" style="margin-top:6px; font-size:12px;">حفظ وتحديث قائمة المنتخبات 💾</button>
                 </div>
 
-                <!-- ب) تعديل وحسم نتائج البطل والنهائي تلقائياً -->
                 <div style="background:rgba(255, 255, 255, 0.04); border:1px solid var(--border-color); padding:10px; border-radius:10px; margin-bottom:12px;">
                     <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">👑 تحديد البطل وطرفي النهائي الرسمي (حساب النقاط كلياً):</p>
                     <select id="adminActualChampion"><option value="">اختر البطل الرسمي...</option></select>
@@ -1080,34 +1116,23 @@
                     <button onclick="saveOfficialGrandResults()" style="margin-top:6px; font-size:12px; background:#10b981; color:#000;">اعتماد النتائج وإضافة النقاط كلياً 🏆</button>
                 </div>
 
-                <!-- ج) تعديل النقاط والإحصائيات يدوياً من المشرف -->
                 <div style="background:rgba(255, 255, 255, 0.04); border:1px solid var(--primary-accent); padding:10px; border-radius:10px; margin-bottom:12px;">
-                    <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🛠️ الخصم والزيادة اليدوية للنقاط (احتياطي للمشرف):</p>
+                    <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🛠️ الخصم والزيادة اليدوية للنقاط:</p>
                     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-top:6px;">
-                        <div>
-                            <label style="font-size:10px; color:var(--text-sub);">تعديل إياد</label>
-                            <input type="number" id="adj_eyad" placeholder="0">
-                        </div>
-                        <div>
-                            <label style="font-size:10px; color:var(--text-sub);">تعديل محمد</label>
-                            <input type="number" id="adj_mohammed" placeholder="0">
-                        </div>
-                        <div>
-                            <label style="font-size:10px; color:var(--text-sub);">تعديل سعود</label>
-                            <input type="number" id="adj_saud" placeholder="0">
-                        </div>
+                        <div><label style="font-size:10px; color:var(--text-sub);">تعديل إياد</label><input type="number" id="adj_eyad" placeholder="0"></div>
+                        <div><label style="font-size:10px; color:var(--text-sub);">تعديل محمد</label><input type="number" id="adj_mohammed" placeholder="0"></div>
+                        <div><label style="font-size:10px; color:var(--text-sub);">تعديل سعود</label><input type="number" id="adj_saud" placeholder="0"></div>
                     </div>
                     
                     <p style="font-size:11px; color:var(--primary-accent); font-weight:bold; margin-top:10px;">📊 تعديل إحصائيات الترتيب يدوياً (اختياري):</p>
-                    <input type="text" id="override_most_exact" placeholder="الأكثر دقة (مثلاً: إياد ومحمد)">
+                    <input type="text" id="override_most_exact" placeholder="الأكثر دقة">
                     <input type="text" id="override_most_correct" placeholder="الأكثر توقع صحيح">
                     <input type="text" id="override_most_wrong" placeholder="الأكثر توقع خاطئ">
-                    <input type="text" id="override_best_streak" placeholder="أفضل ستريك (مثلاً: سعود 4 متتالي)">
+                    <input type="text" id="override_best_streak" placeholder="أفضل ستريك">
 
                     <button onclick="saveAdminAdjustments()" style="margin-top:8px; font-size:12px;">حفظ التعديلات اليدوية 💾</button>
                 </div>
 
-                <!-- د) قفل التوقعات الكبرى -->
                 <div style="background:rgba(255, 255, 255, 0.05); border:1px solid var(--border-color); padding:10px; border-radius:10px; margin-bottom:12px;">
                     <p style="font-size:12px; font-weight:bold; color:var(--primary-accent);">🔒 قفل/فتح التوقعات الكبرى يدوي:</p>
                     <button id="btnToggleGrandLock" onclick="toggleGrandLock()" style="margin-top:6px; font-size:12px;">قفل/فتح التوقعات الكبرى الآن 🔑</button>
@@ -1120,14 +1145,8 @@
                 <input type="text" id="team2" placeholder="الفريق الثاني">
                 
                 <div style="display:flex; gap:8px;">
-                    <div style="flex:1;">
-                        <label style="font-size:10px; color:var(--text-sub);">تاريخ المباراة</label>
-                        <input type="date" id="matchDate">
-                    </div>
-                    <div style="flex:1;">
-                        <label style="font-size:10px; color:var(--text-sub);">وقت المباراة</label>
-                        <input type="time" id="matchTime">
-                    </div>
+                    <div style="flex:1;"><label style="font-size:10px; color:var(--text-sub);">تاريخ المباراة</label><input type="date" id="matchDate"></div>
+                    <div style="flex:1;"><label style="font-size:10px; color:var(--text-sub);">وقت المباراة</label><input type="time" id="matchTime"></div>
                 </div>
 
                 <select id="matchStage">
@@ -1142,9 +1161,7 @@
                 <hr style="border-color: var(--border-color); margin: 15px 0;">
 
                 <p style="font-size:12px; color:var(--text-sub); margin-bottom:6px;">إدارة حالة ونتيجة المباراة:</p>
-                <select id="adminMatchSelect">
-                    <option value="">اختر مباراة للتحكم...</option>
-                </select>
+                <select id="adminMatchSelect"><option value="">اختر مباراة للتحكم...</option></select>
                 <div style="display:flex; gap:8px;">
                     <input type="number" id="liveScore1" placeholder="أهداف الأول">
                     <input type="number" id="liveScore2" placeholder="أهداف الثاني">
@@ -1174,7 +1191,7 @@
         </div>
     </div>
 
-    <!-- النوافذ المنبثقة (Modals) -->
+    <!-- النوافذ المنبثقة -->
     <div id="editGroupModal" class="modal-overlay">
         <div class="modal-content">
             <span class="close-modal" onclick="closeModal('editGroupModal')">&times;</span>
@@ -1191,68 +1208,32 @@
             
             <p style="font-size:13px; color:var(--primary-accent); font-weight:bold; margin-top:6px;">⚽ نصف النهائي 1:</p>
             <div style="display:flex; gap:6px;">
-                <div style="flex:2;">
-                    <label style="font-size:10px; color:var(--text-sub);">المنتخب الأول</label>
-                    <input type="text" id="k_sf1_t1" placeholder="اسم المنتخب">
-                </div>
-                <div style="flex:1;">
-                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
-                    <input type="number" id="k_sf1_s1" placeholder="0">
-                </div>
+                <div style="flex:2;"><label style="font-size:10px; color:var(--text-sub);">المنتخب الأول</label><input type="text" id="k_sf1_t1" placeholder="اسم المنتخب"></div>
+                <div style="flex:1;"><label style="font-size:10px; color:var(--text-sub);">الأهداف</label><input type="number" id="k_sf1_s1" placeholder="0"></div>
             </div>
             <div style="display:flex; gap:6px;">
-                <div style="flex:2;">
-                    <label style="font-size:10px; color:var(--text-sub);">المنتخب الثاني</label>
-                    <input type="text" id="k_sf1_t2" placeholder="اسم المنتخب">
-                </div>
-                <div style="flex:1;">
-                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
-                    <input type="number" id="k_sf1_s2" placeholder="0">
-                </div>
+                <div style="flex:2;"><label style="font-size:10px; color:var(--text-sub);">المنتخب الثاني</label><input type="text" id="k_sf1_t2" placeholder="اسم المنتخب"></div>
+                <div style="flex:1;"><label style="font-size:10px; color:var(--text-sub);">الأهداف</label><input type="number" id="k_sf1_s2" placeholder="0"></div>
             </div>
 
             <p style="font-size:13px; color:var(--primary-accent); font-weight:bold; margin-top:10px;">⚽ نصف النهائي 2:</p>
             <div style="display:flex; gap:6px;">
-                <div style="flex:2;">
-                    <label style="font-size:10px; color:var(--text-sub);">المنتخب الأول</label>
-                    <input type="text" id="k_sf2_t1" placeholder="اسم المنتخب">
-                </div>
-                <div style="flex:1;">
-                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
-                    <input type="number" id="k_sf2_s1" placeholder="0">
-                </div>
+                <div style="flex:2;"><label style="font-size:10px; color:var(--text-sub);">المنتخب الأول</label><input type="text" id="k_sf2_t1" placeholder="اسم المنتخب"></div>
+                <div style="flex:1;"><label style="font-size:10px; color:var(--text-sub);">الأهداف</label><input type="number" id="k_sf2_s1" placeholder="0"></div>
             </div>
             <div style="display:flex; gap:6px;">
-                <div style="flex:2;">
-                    <label style="font-size:10px; color:var(--text-sub);">المنتخب الثاني</label>
-                    <input type="text" id="k_sf2_t2" placeholder="اسم المنتخب">
-                </div>
-                <div style="flex:1;">
-                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
-                    <input type="number" id="k_sf2_s2" placeholder="0">
-                </div>
+                <div style="flex:2;"><label style="font-size:10px; color:var(--text-sub);">المنتخب الثاني</label><input type="text" id="k_sf2_t2" placeholder="اسم المنتخب"></div>
+                <div style="flex:1;"><label style="font-size:10px; color:var(--text-sub);">الأهداف</label><input type="number" id="k_sf2_s2" placeholder="0"></div>
             </div>
 
             <p style="font-size:13px; color:#ffffff; font-weight:bold; margin-top:10px;">🏆 مباراة النهائي:</p>
             <div style="display:flex; gap:6px;">
-                <div style="flex:2;">
-                    <label style="font-size:10px; color:var(--text-sub);">المتأهل الأول</label>
-                    <input type="text" id="k_fn_t1" placeholder="اسم المنتخب">
-                </div>
-                <div style="flex:1;">
-                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
-                    <input type="number" id="k_fn_s1" placeholder="0">
-                </div>
+                <div style="flex:2;"><label style="font-size:10px; color:var(--text-sub);">المتأهل الأول</label><input type="text" id="k_fn_t1" placeholder="اسم المنتخب"></div>
+                <div style="flex:1;"><label style="font-size:10px; color:var(--text-sub);">الأهداف</label><input type="number" id="k_fn_s1" placeholder="0"></div>
             </div>
             <div style="display:flex; gap:6px;">
-                <div style="flex:2;">
-                    <label style="font-size:10px; color:var(--text-sub);">المتأهل الثاني</label>
-                    <input type="text" id="k_fn_t2" placeholder="اسم المنتخب">
-                </div>
-                <div style="flex:1;">
-                    <label style="font-size:10px; color:var(--text-sub);">الأهداف</label>
-                    <input type="number" id="k_fn_s2" placeholder="0">
-                </div>
+                <div style="flex:2;"><label style="font-size:10px; color:var(--text-sub);">المتأهل الثاني</label><input type="text" id="k_fn_t2" placeholder="اسم المنتخب"></div>
+                <div style="flex:1;"><label style="font-size:10px; color:var(--text-sub);">الأهداف</label><input type="number" id="k_fn_s2" placeholder="0"></div>
             </div>
 
             <p style="font-size:13px; color:#10b981; font-weight:bold; margin-top:10px;">👑 اسم بطل الكأس النهائي:</p>
@@ -1311,6 +1292,12 @@
                     </div>
                 </div>
 
+                <!-- إحصائيات الأوسمة في نافذة البروفايل -->
+                <div class="badge-explain-box" style="margin-bottom:10px;">
+                    <div style="font-weight:bold; color:var(--primary-accent); margin-bottom:2px;">🎖️ الأوسمة الحاصل عليها:</div>
+                    <div id="viewMemberBadgesText" style="color:var(--text-main);">0 بطل الجولة | 0 وسام ألماسي</div>
+                </div>
+
                 <h4 style="font-size:13px; color:var(--primary-accent); margin-bottom:8px; text-align:right;">📜 سجل توقعات المباريات المنتهية:</h4>
                 <div id="viewMemberHistory" style="max-height: 180px; overflow-y: auto; text-align: right; display:flex; flex-direction:column; gap:6px;">
                     <p style="font-size:11px; color:var(--text-sub); text-align:center;">لا توجد مباريات منتهية حتى الآن.</p>
@@ -1361,7 +1348,6 @@
         const names = { eyad: "إياد", mohammed: "محمد", saud: "سعود" };
         let selectedUserKey = 'eyad';
         let currentUser = null;
-        let activeLiveMatchData = null;
         let globalMatches = {};
         let globalPredictions = {};
         let allUsersGlobalData = {};
@@ -1374,6 +1360,7 @@
         let teamsListGlobal = ["السعودية", "عمان", "العراق", "الكويت", "قطر", "الإمارات", "البحرين", "اليمن"];
         let adminAdjustmentsGlobal = {};
         let manualMvpBadges = {};
+        let manualDiamondBadges = {};
         let canvasParticles = [];
 
         function formatArabicDate(dateStr) {
@@ -1496,10 +1483,10 @@
 
             listenToTeams();
             listenToAdminAdjustments();
-            listenToManualMvpBadges();
+            listenToManualBadges();
             listenToMatches();
             listenToPredictions();
-            listenToLiveMatch();
+            listenToLiveMatches();
             listenToProfiles();
             listenToTournamentData();
             listenToGrandPredictions();
@@ -1544,54 +1531,40 @@
             }
         }
 
-        // ---------- إدارة الأشكال المتحركة ----------
         function resetParticlesForTheme(w, h) {
             const theme = document.body.className;
             canvasParticles = [];
 
-            if (theme === 'theme-gold' || theme === 'theme-classic') {
-                return;
-            } else if (theme === 'theme-saudi') {
+            if (theme === 'theme-saudi') {
                 canvasParticles = Array.from({ length: 40 }, () => ({
-                    x: Math.random() * w,
-                    y: Math.random() * h,
+                    x: Math.random() * w, y: Math.random() * h,
                     r: Math.random() * 3.5 + 1.5,
-                    dx: (Math.random() - 0.5) * 1.5,
-                    dy: (Math.random() - 0.5) * 0.8,
-                    angle: Math.random() * Math.PI * 2,
-                    speed: Math.random() * 0.04 + 0.01,
+                    dx: (Math.random() - 0.5) * 1.5, dy: (Math.random() - 0.5) * 0.8,
+                    angle: Math.random() * Math.PI * 2, speed: Math.random() * 0.04 + 0.01,
                     o: Math.random() * 0.6 + 0.3
                 }));
             } else if (theme === 'theme-snow') {
                 canvasParticles = Array.from({ length: 55 }, () => ({
-                    x: Math.random() * w,
-                    y: Math.random() * h,
-                    r: Math.random() * 3 + 1,
-                    dy: Math.random() * 1.8 + 0.8,
-                    sway: Math.random() * 0.03,
+                    x: Math.random() * w, y: Math.random() * h,
+                    r: Math.random() * 3 + 1, dy: Math.random() * 1.8 + 0.8,
                     o: Math.random() * 0.7 + 0.3
                 }));
             } else if (theme === 'theme-volcano') {
                 const colors = ['rgba(239, 68, 68, ', 'rgba(249, 115, 22, ', 'rgba(245, 158, 11, '];
                 canvasParticles = Array.from({ length: 50 }, () => {
                     const alpha = Math.random() * 0.7 + 0.3;
-                    const colPrefix = colors[Math.floor(Math.random() * colors.length)];
                     return {
-                        x: Math.random() * w,
-                        y: Math.random() * h,
-                        r: Math.random() * 2.8 + 1,
-                        dy: Math.random() * 2.0 + 1.0,
-                        color: colPrefix + alpha + ')',
+                        x: Math.random() * w, y: Math.random() * h,
+                        r: Math.random() * 2.8 + 1, dy: Math.random() * 2.0 + 1.0,
+                        color: colors[Math.floor(Math.random() * colors.length)] + alpha + ')',
                         o: alpha
                     };
                 });
             } else if (theme === 'theme-leader') {
                 canvasParticles = Array.from({ length: 38 }, () => ({
-                    x: Math.random() * w,
-                    y: Math.random() * h,
+                    x: Math.random() * w, y: Math.random() * h,
                     r: Math.random() * 3.5 + 1.5,
-                    dx: (Math.random() - 0.5) * 1.1,
-                    dy: (Math.random() - 0.5) * 1.1,
+                    dx: (Math.random() - 0.5) * 1.1, dy: (Math.random() - 0.5) * 1.1,
                     o: Math.random() * 0.8 + 0.3
                 }));
             }
@@ -1621,7 +1594,6 @@
                         p.angle += p.speed;
                         p.x += Math.sin(p.angle) * 1.2 + p.dx;
                         p.y += p.dy;
-
                         if (p.x < -10) p.x = width + 10;
                         if (p.x > width + 10) p.x = -10;
                         if (p.y < -10) p.y = height + 10;
@@ -1636,12 +1608,7 @@
                     canvasParticles.forEach(p => {
                         p.y += p.dy;
                         p.x += Math.sin(p.y * 0.02) * 0.6;
-
-                        if (p.y > height + 10) {
-                            p.y = -10;
-                            p.x = Math.random() * width;
-                        }
-
+                        if (p.y > height + 10) { p.y = -10; p.x = Math.random() * width; }
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = `rgba(255, 255, 255, ${p.o})`;
@@ -1651,12 +1618,7 @@
                     canvasParticles.forEach(p => {
                         p.y -= p.dy;
                         p.x += Math.sin(p.y * 0.03) * 0.8;
-
-                        if (p.y < -10) {
-                            p.y = height + 10;
-                            p.x = Math.random() * width;
-                        }
-
+                        if (p.y < -10) { p.y = height + 10; p.x = Math.random() * width; }
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = p.color || `rgba(239, 68, 68, ${p.o})`;
@@ -1666,26 +1628,25 @@
                     canvasParticles.forEach(p => {
                         p.x += p.dx;
                         p.y += p.dy;
-
                         if (p.x < 0 || p.x > width) p.dx *= -1;
                         if (p.y < 0 || p.y > height) p.dy *= -1;
-
                         ctx.beginPath();
                         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                         ctx.fillStyle = `rgba(250, 204, 21, ${p.o})`;
                         ctx.fill();
                     });
                 }
-
                 requestAnimationFrame(animate);
             }
             animate();
         }
 
-        // ---------- إضافة التحكم بـ MVP اليدوي ----------
-        function listenToManualMvpBadges() {
-            db.ref('manualMvpBadges').on('value', (snap) => {
-                manualMvpBadges = snap.val() || {};
+        // ---------- إدارة الأوسمة اليدوية ----------
+        function listenToManualBadges() {
+            db.ref('manualBadges').on('value', (snap) => {
+                const data = snap.val() || {};
+                manualMvpBadges = data.mvp || {};
+                manualDiamondBadges = data.diamond || {};
                 updateLeaderboard();
             });
         }
@@ -1693,8 +1654,16 @@
         function toggleMvpBadgeManual(uKey) {
             if (currentUser !== 'eyad') return;
             const currentVal = !!manualMvpBadges[uKey];
-            db.ref(`manualMvpBadges/${uKey}`).set(!currentVal, (err) => {
-                if (!err) alert(`تم ${!currentVal ? 'إضافة' : 'إزالة'} وسم بطل الجولة يدوياً للمتسابق (${names[uKey]})! 🎖️`);
+            db.ref(`manualBadges/mvp/${uKey}`).set(!currentVal, (err) => {
+                if (!err) alert(`تم ${!currentVal ? 'إضافة' : 'إزالة'} وسم بطل الجولة للمتسابق (${names[uKey]})! 🎖️`);
+            });
+        }
+
+        function toggleDiamondBadgeManual(uKey) {
+            if (currentUser !== 'eyad') return;
+            const currentVal = !!manualDiamondBadges[uKey];
+            db.ref(`manualBadges/diamond/${uKey}`).set(!currentVal, (err) => {
+                if (!err) alert(`تم ${!currentVal ? 'إضافة' : 'إزالة'} الوسام الألماسي والتاج للمتسابق (${names[uKey]})! 💎👑`);
             });
         }
 
@@ -1931,17 +1900,14 @@
                 sf1_s1: document.getElementById('k_sf1_s1').value,
                 sf1_t2: document.getElementById('k_sf1_t2').value.trim(),
                 sf1_s2: document.getElementById('k_sf1_s2').value,
-
                 sf2_t1: document.getElementById('k_sf2_t1').value.trim(),
                 sf2_s1: document.getElementById('k_sf2_s1').value,
                 sf2_t2: document.getElementById('k_sf2_t2').value.trim(),
                 sf2_s2: document.getElementById('k_sf2_s2').value,
-
                 fn_t1: document.getElementById('k_fn_t1').value.trim(),
                 fn_s1: document.getElementById('k_fn_s1').value,
                 fn_t2: document.getElementById('k_fn_t2').value.trim(),
                 fn_s2: document.getElementById('k_fn_s2').value,
-
                 champion: document.getElementById('k_champion').value.trim()
             };
 
@@ -2023,6 +1989,8 @@
         function openMemberCard(uKey) {
             const uData = allUsersGlobalData[uKey] || {};
             const stats = calculatePointsAndStats().stats[uKey] || { exact: 0, correct: 0, wrong: 0 };
+            const hasMvp = !!manualMvpBadges[uKey];
+            const hasDiamond = !!manualDiamondBadges[uKey];
 
             document.getElementById('viewMemberName').innerText = names[uKey] || uKey;
             document.getElementById('viewMemberNickname').innerText = uData.nickname ? `@${uData.nickname}` : '@اللقب';
@@ -2033,6 +2001,7 @@
             document.getElementById('viewMemberExact').innerText = stats.exact;
             document.getElementById('viewMemberCorrect').innerText = stats.correct;
             document.getElementById('viewMemberWrong').innerText = stats.wrong;
+            document.getElementById('viewMemberBadgesText').innerText = `${hasMvp ? 1 : 0} بطل الجولة | ${hasDiamond ? 1 : 0} وسام ألماسي`;
 
             const historyContainer = document.getElementById('viewMemberHistory');
             historyContainer.innerHTML = '';
@@ -2194,8 +2163,6 @@
                 if (match.status === 'upcoming' && match.matchDate) {
                     let matchTimeMs = new Date(match.matchDate + (match.matchTime ? 'T' + match.matchTime : 'T00:00:00')).getTime();
                     const diff = matchTimeMs - now;
-
-                    // أقل من 24 ساعة ومتبقي وقت
                     if (diff > 0 && diff <= oneDayMs) {
                         const myPred = globalPredictions[mId]?.[currentUser];
                         if (!myPred || myPred.score1 === undefined || myPred.score1 === '') {
@@ -2223,15 +2190,8 @@
             if (!t1 || !t2) return alert('أدخل أسماء الفريقين');
 
             db.ref('matches').push({
-                team1: t1,
-                team2: t2,
-                matchDate: mDate,
-                matchTime: mTime,
-                stage: stage,
-                status: 'upcoming',
-                score1: 0,
-                score2: 0,
-                createdAt: Date.now()
+                team1: t1, team2: t2, matchDate: mDate, matchTime: mTime,
+                stage: stage, status: 'upcoming', score1: 0, score2: 0, createdAt: Date.now()
             });
 
             document.getElementById('team1').value = '';
@@ -2256,15 +2216,6 @@
             const s2 = parseInt(document.getElementById('liveScore2').value) || 0;
 
             db.ref(`matches/${matchId}`).update({ status: newStatus, score1: s1, score2: s2 });
-
-            if (newStatus === 'live') {
-                db.ref('liveMatch').set({ matchId: matchId, score1: s1, score2: s2, isLive: true });
-            } else {
-                db.ref('liveMatch').once('value', (snap) => {
-                    if (snap.exists() && snap.val().matchId === matchId) db.ref('liveMatch').set({ isLive: false });
-                });
-            }
-            alert('تم تحديث حالة المباراة!');
         }
 
         function listenToMatches() {
@@ -2282,6 +2233,32 @@
                 renderMatches(); 
                 updateLeaderboard(); 
                 checkSmartReminders();
+            });
+        }
+
+        function listenToLiveMatches() {
+            db.ref('matches').on('value', (snap) => {
+                const matches = snap.val() || {};
+                const container = document.getElementById('liveMatchesContainer');
+                container.innerHTML = '';
+                
+                let liveMatchesKeys = Object.keys(matches).filter(mId => matches[mId].status === 'live');
+
+                if (liveMatchesKeys.length > 0) {
+                    container.style.display = 'grid';
+                    liveMatchesKeys.forEach(mId => {
+                        const m = matches[mId];
+                        container.innerHTML += `
+                            <div class="live-match-box">
+                                <span style="background: #ef4444; color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold;">مباشر الآن 🔴</span>
+                                <div style="font-size: 13px; font-weight: bold; margin-top:4px;">${m.team1} vs ${m.team2}</div>
+                                <div style="font-size: 18px; font-weight: bold; margin: 4px 0; color: #fff;">${m.score1 ?? 0} - ${m.score2 ?? 0}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    container.style.display = 'none';
+                }
             });
         }
 
@@ -2360,7 +2337,7 @@
                     scoreHeaderHtml = `<div style="text-align:center; font-weight:bold; color:#10b981; margin: 4px 0;">النتيجة الحالية: ${data.score1 ?? 0} - ${data.score2 ?? 0}</div>`;
 
                     const livePts = calculateSingleMatchPoints(matchId, currentUser, data.score1 ?? 0, data.score2 ?? 0);
-                    pointsEarnedNotice = `<div style="text-align:center;"><span class="points-delta-badge ${livePts > 0 ? 'delta-plus' : 'delta-zero'}">مكتسب مباشر الآن: +${livePts} نقطة</span></div>`;
+                    pointsEarnedNotice = `<div style="text-align:center;"><span class="points-delta-badge ${livePts > 0 ? 'delta-plus' : 'delta-zero'}">مكتسب مباشر من هذه المباراة: +${livePts} نقطة</span></div>`;
 
                     if (blockedByWhom) {
                         blockedBannerHtml = `<div style="background:rgba(239,68,68,0.2); border:1px solid #ef4444; color:#ef4444; font-size:11px; padding:4px; text-align:center; border-radius:6px; margin:4px 0;">🔒 تم استخدام بطاقة المنع عليك من (${blockedByWhom})! لن تجني نقاط هذا اللقاء.</div>`;
@@ -2420,9 +2397,9 @@
                             <label>🃏 استخدام بطاقة مساعدة (اختياري):</label>
                             <select id="cardSelect_${matchId}" onchange="onCardSelectChange('${matchId}')" ${disabledAttr}>
                                 <option value="none" ${curCard === 'none' ? 'selected' : ''}>بدون بطاقة</option>
-                                <option value="double" ${curCard === 'double' ? 'selected' : ''} ${doubleDis}>🚀 تدبيل النقاط (x2) ${!isGroupStage ? '(المجموعات فقط)' : (usedDouble && usedDoubleMatch !== matchId ? '(مستخدمة)' : '')}</option>
-                                <option value="block" ${curCard === 'block' ? 'selected' : ''} ${blockDis}>🔒 منع متسابق من التوقع ${!isGroupStage ? '(المجموعات فقط)' : (usedBlock && usedBlockMatch !== matchId ? '(مستخدمة)' : '')}</option>
-                                <option value="goals" ${curCard === 'goals' ? 'selected' : ''} ${goalsDis}>⚽ كل هدف بنقطة ${usedGoals && usedGoalsMatch !== matchId ? '(مستخدمة)' : ''}</option>
+                                <option value="double" ${curCard === 'double' ? 'selected' : ''} ${doubleDis}>🚀 تدبيل النقاط (x2) ${!isGroupStage ? '(المجموعات فقط)' : ''}</option>
+                                <option value="block" ${curCard === 'block' ? 'selected' : ''} ${blockDis}>🔒 منع متسابق من التوقع ${!isGroupStage ? '(المجموعات فقط)' : ''}</option>
+                                <option value="goals" ${curCard === 'goals' ? 'selected' : ''} ${goalsDis}>⚽ كل هدف بنقطة</option>
                             </select>
 
                             <div id="targetBlockBox_${matchId}" style="display: ${curCard === 'block' ? 'block' : 'none'}; margin-top:6px;">
@@ -2446,10 +2423,7 @@
                     <div class="${cardClass}">
                         <div class="match-header">
                             <span class="stage-badge">${stageText}</span>
-                            <div>
-                                ${tagHtml}
-                                ${deleteBtnHtml}
-                            </div>
+                            <div>${tagHtml} ${deleteBtnHtml}</div>
                         </div>
 
                         ${timeDisplayHtml}
@@ -2509,21 +2483,6 @@
             });
         }
 
-        function listenToLiveMatch() {
-            db.ref('liveMatch').on('value', (snap) => {
-                const liveData = snap.val();
-                const banner = document.getElementById('liveMatchBanner');
-                if (liveData && liveData.isLive && globalMatches[liveData.matchId]) {
-                    const m = globalMatches[liveData.matchId];
-                    document.getElementById('liveMatchTeams').innerText = `${m.team1} vs ${m.team2}`;
-                    document.getElementById('liveMatchScore').innerText = `${liveData.score1 ?? 0} - ${liveData.score2 ?? 0}`;
-                    banner.style.display = 'block';
-                } else {
-                    banner.style.display = 'none';
-                }
-            });
-        }
-
         function calculateSingleMatchPoints(matchId, userKey, act1, act2) {
             const match = globalMatches[matchId];
             if (!match) return 0;
@@ -2573,13 +2532,8 @@
                 saud: { points: 0, exact: 0, correct: 0, wrong: 0, streak: 0, maxStreak: 0 }
             };
 
-            const last3MatchPts = { eyad: 0, mohammed: 0, saud: 0 };
-
             const finishedMatchIds = Object.keys(globalMatches).filter(mId => globalMatches[mId].status === 'finished');
-
-            // ترتيب المباريات المنتهية بحسب التاريخ لتحديد آخر 3 مباريات
             finishedMatchIds.sort((a,b) => (globalMatches[a].createdAt || 0) - (globalMatches[b].createdAt || 0));
-            const last3MatchIds = finishedMatchIds.slice(-3);
 
             finishedMatchIds.forEach(mId => {
                 const match = globalMatches[mId];
@@ -2612,11 +2566,6 @@
                         }
                     }
                     resultStats[uKey].points += pts;
-
-                    // حساب نقاط آخر 3 مباريات لوسم MVP
-                    if (last3MatchIds.includes(mId)) {
-                        last3MatchPts[uKey] += pts;
-                    }
                 });
             });
 
@@ -2648,27 +2597,12 @@
                 }
             });
 
-            // تحديث مستحقي وسام بطل الجولة (Gameweek MVP) تلقائياً
-            let maxLast3Pts = -1;
-            let mvpWinners = [];
-            if (finishedMatchIds.length > 0) {
-                Object.keys(last3MatchPts).forEach(uKey => {
-                    if (last3MatchPts[uKey] > maxLast3Pts) {
-                        maxLast3Pts = last3MatchPts[uKey];
-                        mvpWinners = [uKey];
-                    } else if (last3MatchPts[uKey] === maxLast3Pts && maxLast3Pts > 0) {
-                        mvpWinners.push(uKey);
-                    }
-                });
-            }
-
-            return { stats: resultStats, mvpWinners: mvpWinners };
+            return { stats: resultStats };
         }
 
         function updateLeaderboard() {
             const calculated = calculatePointsAndStats();
             const stats = calculated.stats;
-            const autoMvpWinners = calculated.mvpWinners;
 
             const leaderboardBody = document.getElementById('leaderboard');
             if (!leaderboardBody) return;
@@ -2700,21 +2634,51 @@
                 const nickname = u.data.nickname ? `@${u.data.nickname}` : '';
                 const rankBadge = rank === 1 ? '🥇' : (rank === 2 ? '🥈' : '🥉');
 
-                // فحص استحقاق وسم بطل الجولة (سواء تلقائي أو يدوي من المشرف)
-                const hasMvpBadge = autoMvpWinners.includes(u.key) || !!manualMvpBadges[u.key];
-                const mvpBadgeHtml = hasMvpBadge ? `<span class="mvp-badge">🎖️ بطل الجولة</span>` : '';
+                const hasMvpBadge = !!manualMvpBadges[u.key];
+                const hasDiamondBadge = !!manualDiamondBadges[u.key];
+                const badgesHtml = `${hasMvpBadge ? '<span class="mvp-badge">🎖️ بطل الجولة</span>' : ''}${hasDiamondBadge ? '<span class="diamond-badge">💎👑</span>' : ''}`;
 
-                let livePredText = '-';
-                let liveMatchId = null;
-                Object.keys(globalMatches).forEach(mId => {
-                    if (globalMatches[mId].status === 'live') liveMatchId = mId;
-                });
+                let liveMatchesKeys = Object.keys(globalMatches).filter(mId => globalMatches[mId].status === 'live');
+                let livePredHtml = '-';
 
-                if (liveMatchId && globalPredictions[liveMatchId]?.[u.key]) {
-                    const p = globalPredictions[liveMatchId][u.key];
-                    if (p.score1 !== undefined && p.score1 !== '') {
-                        livePredText = `${p.score1} - ${p.score2}`;
-                    }
+                if (liveMatchesKeys.length > 0) {
+                    let parts = [];
+                    liveMatchesKeys.forEach(mId => {
+                        const m = globalMatches[mId];
+                        const p = globalPredictions[mId]?.[u.key];
+                        const act1 = parseInt(m.score1 ?? 0), act2 = parseInt(m.score2 ?? 0);
+                        let pText = '-';
+                        let badgeClass = 'pred-wrong';
+
+                        if (p && p.score1 !== undefined && p.score1 !== '') {
+                            const p1 = parseInt(p.score1), p2 = parseInt(p.score2);
+                            pText = `${p1} - ${p2}`;
+                            const isExact = (p1 === act1 && p2 === act2);
+                            const isCorrect = !isExact && ((p1 > p2 && act1 > act2) || (p1 < p2 && act1 < act2) || (p1 === p2 && act1 === act2));
+                            if (isExact) badgeClass = 'pred-exact';
+                            else if (isCorrect) badgeClass = 'pred-correct';
+                        }
+                        parts.innerHTML = `<div style="font-size:11px; margin-bottom:2px;">${m.team1.substring(0,4)}vs${m.team2.substring(0,4)}: <span class="pred-badge ${badgeClass}">${pText}</span></div>`;
+                    });
+                    // تجميع عرض التوقعات المباشرة للمباريات الجارية
+                    let htmlList = '';
+                    liveMatchesKeys.forEach(mId => {
+                        const m = globalMatches[mId];
+                        const p = globalPredictions[mId]?.[u.key];
+                        const act1 = parseInt(m.score1 ?? 0), act2 = parseInt(m.score2 ?? 0);
+                        let pText = '-';
+                        let badgeClass = 'pred-wrong';
+                        if (p && p.score1 !== undefined && p.score1 !== '') {
+                            const p1 = parseInt(p.score1), p2 = parseInt(p.score2);
+                            pText = `${p1} - ${p2}`;
+                            const isExact = (p1 === act1 && p2 === act2);
+                            const isCorrect = !isExact && ((p1 > p2 && act1 > act2) || (p1 < p2 && act1 < act2) || (p1 === p2 && act1 === act2));
+                            if (isExact) badgeClass = 'pred-exact';
+                            else if (isCorrect) badgeClass = 'pred-correct';
+                        }
+                        htmlList += `<div style="font-size:11px; margin-top:2px;">${m.team1}vs${m.team2}: <span class="pred-badge ${badgeClass}">${pText}</span></div>`;
+                    });
+                    livePredHtml = htmlList || '-';
                 }
 
                 const userGrand = grandPredictionsData[u.key];
@@ -2741,12 +2705,12 @@
                             <div class="user-main-info">
                                 <img src="${avatar}" class="user-table-avatar" alt="Avatar">
                                 <div>
-                                    <div style="font-weight:bold; color:var(--text-main); font-size:14px;">${u.name} ${mvpBadgeHtml} <span style="font-size:11px; color:var(--text-sub);">${nickname}</span></div>
+                                    <div style="font-weight:bold; color:var(--text-main); font-size:14px;">${u.name} ${badgesHtml} <span style="font-size:11px; color:var(--text-sub);">${nickname}</span></div>
                                 </div>
                             </div>
                             ${grandSummaryHtml}
                         </td>
-                        <td><span style="font-weight:bold; font-size:13px; color:var(--primary-accent);">${livePredText}</span></td>
+                        <td>${livePredHtml}</td>
                         <td style="font-weight:bold; font-size:18px; color:var(--primary-accent);">${u.points}</td>
                     </tr>
                 `;
@@ -2759,7 +2723,16 @@
                 document.getElementById('st_exact').innerText = stats[currentUser].exact;
                 document.getElementById('st_correct').innerText = stats[currentUser].correct;
                 document.getElementById('st_wrong').innerText = stats[currentUser].wrong;
+                
+                const hasMyMvp = !!manualMvpBadges[currentUser];
+                const hasMyDiamond = !!manualDiamondBadges[currentUser];
+                document.getElementById('st_badges_count').innerText = `${hasMyMvp ? 1 : 0} بطل الجولة | ${hasMyDiamond ? 1 : 0} ألماسي`;
             }
+
+            let mvpHolders = Object.keys(manualMvpBadges).filter(k => manualMvpBadges[k]).map(k => names[k]).join(' و ');
+            let diamondHolders = Object.keys(manualDiamondBadges).filter(k => manualDiamondBadges[k]).map(k => names[k]).join(' و ');
+            document.getElementById('mostMvpUserText').innerText = mvpHolders || 'لا توجد أوسمة معينة';
+            document.getElementById('mostDiamondUserText').innerText = diamondHolders || 'لا توجد أوسمة معينة';
 
             let doubleUsed = false, blockUsed = false, goalsUsed = false;
             Object.keys(globalPredictions).forEach(mId => {
@@ -2776,7 +2749,6 @@
             updateCardBadge('cardBadgeGoals', goalsUsed);
 
             const overrides = adminAdjustmentsGlobal.overrides || {};
-
             let maxExactVal = -1, exactUsers = [];
             usersArr.forEach(u => {
                 if (u.exact > maxExactVal) { maxExactVal = u.exact; exactUsers = [u.name]; }
@@ -2819,7 +2791,6 @@
             }
         }
 
-        // ---------- بدء تشغيل التطبيق ----------
         window.onload = function() {
             initCanvas();
             const loggedUser = localStorage.getItem('logged_in_user');
