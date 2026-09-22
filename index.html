@@ -2609,17 +2609,29 @@
 
             leaderboardBody.innerHTML = '';
 
-            const usersArr = ['eyad', 'mohammed', 'saud'].map(uKey => ({
-                key: uKey,
-                name: names[uKey],
-                points: stats[uKey].points,
-                exact: stats[uKey].exact,
-                correct: stats[uKey].correct,
-                wrong: stats[uKey].wrong,
-                data: allUsersGlobalData[uKey] || {}
-            }));
+            let liveMatchesKeys = Object.keys(globalMatches).filter(mId => globalMatches[mId].status === 'live');
 
-            usersArr.sort((a, b) => b.points - a.points || b.exact - a.exact || b.correct - a.correct);
+            const usersArr = ['eyad', 'mohammed', 'saud'].map(uKey => {
+                let basePts = stats[uKey].points;
+                let livePtsTotal = 0;
+                liveMatchesKeys.forEach(mId => {
+                    const m = globalMatches[mId];
+                    livePtsTotal += calculateSingleMatchPoints(mId, uKey, m.score1 ?? 0, m.score2 ?? 0);
+                });
+                return {
+                    key: uKey,
+                    name: names[uKey],
+                    basePoints: basePts,
+                    livePoints: livePtsTotal,
+                    totalPoints: basePts + livePtsTotal,
+                    exact: stats[uKey].exact,
+                    correct: stats[uKey].correct,
+                    wrong: stats[uKey].wrong,
+                    data: allUsersGlobalData[uKey] || {}
+                };
+            });
+
+            usersArr.sort((a, b) => b.totalPoints - a.totalPoints || b.exact - a.exact || b.correct - a.correct);
 
             currentLeader = usersArr[0]?.key || null;
 
@@ -2638,29 +2650,9 @@
                 const hasDiamondBadge = !!manualDiamondBadges[u.key];
                 const badgesHtml = `${hasMvpBadge ? '<span class="mvp-badge">🎖️ بطل الجولة</span>' : ''}${hasDiamondBadge ? '<span class="diamond-badge">💎👑</span>' : ''}`;
 
-                let liveMatchesKeys = Object.keys(globalMatches).filter(mId => globalMatches[mId].status === 'live');
                 let livePredHtml = '-';
 
                 if (liveMatchesKeys.length > 0) {
-                    let parts = [];
-                    liveMatchesKeys.forEach(mId => {
-                        const m = globalMatches[mId];
-                        const p = globalPredictions[mId]?.[u.key];
-                        const act1 = parseInt(m.score1 ?? 0), act2 = parseInt(m.score2 ?? 0);
-                        let pText = '-';
-                        let badgeClass = 'pred-wrong';
-
-                        if (p && p.score1 !== undefined && p.score1 !== '') {
-                            const p1 = parseInt(p.score1), p2 = parseInt(p.score2);
-                            pText = `${p1} - ${p2}`;
-                            const isExact = (p1 === act1 && p2 === act2);
-                            const isCorrect = !isExact && ((p1 > p2 && act1 > act2) || (p1 < p2 && act1 < act2) || (p1 === p2 && act1 === act2));
-                            if (isExact) badgeClass = 'pred-exact';
-                            else if (isCorrect) badgeClass = 'pred-correct';
-                        }
-                        parts.innerHTML = `<div style="font-size:11px; margin-bottom:2px;">${m.team1.substring(0,4)}vs${m.team2.substring(0,4)}: <span class="pred-badge ${badgeClass}">${pText}</span></div>`;
-                    });
-                    // تجميع عرض التوقعات المباشرة للمباريات الجارية
                     let htmlList = '';
                     liveMatchesKeys.forEach(mId => {
                         const m = globalMatches[mId];
@@ -2698,6 +2690,8 @@
                     }
                 }
 
+                let ptsBadgeHtml = u.livePoints > 0 ? `<span class="points-delta-badge delta-plus" style="font-size:10px; margin-right:3px;">+${u.livePoints}</span>` : '';
+
                 leaderboardBody.innerHTML += `
                     <tr>
                         <td style="font-weight:bold; font-size:15px;">${rankBadge} ${rank}</td>
@@ -2711,15 +2705,16 @@
                             ${grandSummaryHtml}
                         </td>
                         <td>${livePredHtml}</td>
-                        <td style="font-weight:bold; font-size:18px; color:var(--primary-accent);">${u.points}</td>
+                        <td style="font-weight:bold; font-size:18px; color:var(--primary-accent);">${u.totalPoints} ${ptsBadgeHtml}</td>
                     </tr>
                 `;
             });
 
             if (currentUser && stats[currentUser]) {
+                const myUserObj = usersArr.find(u => u.key === currentUser);
                 const myRankIdx = usersArr.findIndex(u => u.key === currentUser);
                 document.getElementById('st_rank').innerText = myRankIdx !== -1 ? `#${myRankIdx + 1}` : '-';
-                document.getElementById('st_points').innerText = stats[currentUser].points;
+                document.getElementById('st_points').innerText = myUserObj ? myUserObj.totalPoints : stats[currentUser].points;
                 document.getElementById('st_exact').innerText = stats[currentUser].exact;
                 document.getElementById('st_correct').innerText = stats[currentUser].correct;
                 document.getElementById('st_wrong').innerText = stats[currentUser].wrong;
